@@ -2,7 +2,9 @@
 title: "Rclub2017_spring_Kazu"
 author: "Kazu"
 date: "4/25/2017"
-output: html_document
+output: 
+  html_document: 
+    keep_md: yes
 ---
 # Prerequisites
 ```{r setup, include=FALSE}
