@@ -99,6 +99,18 @@ ggplot(data = mpg[mpg$class=="2seater",]) +
 #6. When using facet_grid() you should usually put the variable with more unique levels in the columns. Why?
 ggplot(data = mpg) + 
   geom_point(mapping = aes(x = displ, y = hwy)) +
-  facet_grid(. ~ cyl) # do you mean length(displ) > levels(cyl)?
+  facet_grid(. ~ cyl) # do you mean length(displ) > levels(cyl)? 
+```
+# playing legend
+```{r}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy,color=class=="compact")) # how to change lengend 
+
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy,color=class=="compact")) +
+  scale_color_manual(labels=c("NotCompact","Compact"),values=c("magenta","green")) + labs(color="Type")
+
+
+
 
 ```
