@@ -77,7 +77,8 @@ p1<-ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) +
 p2<-ggplot(data = mpg, mapping = aes(x = displ, y = hwy,group=drv)) + 
   geom_point() + 
   geom_smooth(se=FALSE)
-p3<-ggplot(data = mpg, mapping = aes(x = displ, y = hwy,group=drv,color=drv)) + 
+p3<-ggplot(data = mpg, mapping = aes(x = displ,
+                                     y = hwy,group=drv,color=drv)) + 
   geom_point() + 
   geom_smooth(se=FALSE)
 p4<-ggplot(data = mpg, mapping = aes(x = displ, y = hwy,color=drv)) + 
@@ -92,8 +93,94 @@ library(cowplot)
 plot.all<-plot_grid(p1,p2,p3,p4,p5,p6,
   ncol=2,nrow=3,labels=c("A","B","C","D","E","F"),rel_widths=c(1,1,1,1,1,1)
   )
-save_plot("R-club-May-3/3.6.6.png", plot.all, ncol = 2, nrow = 3,base_aspect_ratio = 0.8)
+save_plot("/Volumes/data_work/Data6/bioconductor_R/Rclub2017_spring/Rclub-r4ds_Kazu.Nozue/R-club-May-3/3.6.6.png", plot.all, ncol = 2, nrow = 3,base_aspect_ratio = 0.8)
 
+```
+# my own data
+```{r}
+# load function
+plot.bar7 <- function(trait,data.input=data.plot,title="",ylabel,rownum=3,save.plot=T,show.plot=F,width=8,height=6,RFRratio=F) { 
+  #make bar chart for a trait in Kazu's data
+  if (title=="") title <- trait
+  data.plot<-data.input[grep(paste("(^",trait,")\\w+(rCol)",sep=""),names(data.input),value=T)]
+  print(data.plot)
+  # names(data.plot)<-"diff" # Kazu added this line    
+  data.plot$gene <- data.input$plant  
+  # #Calculate difference between sun and shade to
+  #sort plot
+  #data.plot$dif <- (get(paste(trait,"shade",sep="_"),data.plot) -
+  # # get(paste(trait,"sun",sep="_"),data.plot))
+  data.plot$dif<-data.plot[,grep("sun_mean",names(data.plot))[grep("sun_mean",names(data.plot)) %in% grep("_rCol_rsun",names(data.plot))]]-data.plot[,grep("shade_mean",names(data.plot))[grep("shade_mean",names(data.plot)) %in% grep("_rCol_rsun",names(data.plot))]]    
+  print("data.plot$dif is")
+  print(data.plot$dif)     
+  print("names(data.plot) are")
+  print(names(data.plot))  
+  # order according to response (data.plot$dif) # this is off in SA plot
+  #data.plot <- data.plot[order(data.plot$dif),] 
+  #print("ordered data is")
+  print(data.plot)
+  # #will need to preserve this ordering
+  data.plot$rank <- 1:dim(data.plot)[1]  
+  #subset and rearrange data
+  data.plot.sun <- data.plot[c(grep("(_sun)",names(data.plot),value=T)[grep("(_sun)",names(data.plot)) %in% grep("(_rsun)",names(data.plot))],"gene","rank")]
+  print("names(data.plot.sun) are")
+  
+  print(names(data.plot.sun))
+  data.plot.shade <- data.plot[c(grep("(_shade)",names(data.plot),value=T)[grep("(_shade)",names(data.plot)) %in% grep("(_rshade)",names(data.plot))],"gene","rank")]
+  print("names(data.plot.shade) are");print(names(data.plot.shade))
+  data.plot.sun$trt <- "sun"
+  data.plot.shade$trt <- "shade"
+  names(data.plot.sun)[1:3] <- c("mean","SE","pvalue")
+  names(data.plot.shade)[1:3] <- c("mean","SE","pvalue") # this pvalue is not "response" 
+  # input response pvalue
+  data.plot.shade$"pvalue"<-data.plot[,grep("(_shade_pvalue_rCol_rsun)",names(data.plot))]
+  
+  data.plot <- rbind(data.plot.sun,data.plot.shade)
+  # if (length(data.plot)!=7) {
+  # warning(paste("incorrect number of data columns for trait",trait,"not plotting"))
+  # return()
+  # }
+  print("rearragend data.plot is");print(data.plot)
+  data.plot$trt <- factor(data.plot$trt,levels=c("sun","shade"))
+  data.plot$gene <- factor(data.plot$gene,levels=data.plot.sun$gene)
+  data.plot$ymin=data.plot$mean - data.plot$SE
+  data.plot$ymax=data.plot$mean + data.plot$SE
+  
+  # add significance label (p<0.05)
+  data.plot$significance<-" "
+  data.plot$significance[data.plot$pvalue<0.05]<-"*"
+  # remove significance in Col in sun
+  data.plot[data.plot$gene=="Col"&data.plot$trt=="sun","significance"]<-" "
+  
+  if(RFRratio) {
+    data.plot$trt<-gsub("sun","high \nR/FR",as.character(data.plot$trt))
+    data.plot$trt<-gsub("shade","low \nR/FR",as.character(data.plot$trt))
+    data.plot$trt<-factor(data.plot$trt,levels=c("high \nR/FR","low \nR/FR"))
+  } 
+  
+  print(data.plot)
+  pl <- ggplot(data=data.plot)
+  pl <- pl + geom_bar(mapping=aes(fill=trt,x=trt,y=mean),stat="identity")
+  pl <- pl + facet_wrap(facets=~gene,nrow=rownum)
+  pl <- pl + geom_errorbar(mapping=aes(x=trt,ymin=ymin,ymax=ymax))
+  #  pl <- pl + opts(strip.text.x = theme_text(angle=90))
+  pl <- pl + theme(strip.text.x = element_text(angle=90))
+  #pl <- pl + theme(strip.text.x = element_text(angle=90,colour=data.plot$gene))
+  pl <- pl + theme(strip.text.x = element_text(colour=data.plot$gene))
+  #pl <- pl + opts(axis.title.x = theme_blank(), axis.title.y = theme_blank(),title=title)
+  pl <-pl + theme(axis.title.x = element_blank(), axis.text.x=element_text(angle=90))
+  pl <-pl + labs(title=title,y=ylabel)
+  pl <- pl + geom_text(data=data.plot,aes(x=trt,y=ymax*1.05,label=factor(significance),color=trt))     # for significance
+  pl
+  if(save.plot) ggsave(filename=paste(title,"pdf",sep="."),
+                       plot=pl,width=width,height=height)
+  if(show.plot) pl
+  return(pl) # added on 071715
+}
+# the end of plot.bar7
 
-
+load("/Volumes/data_work/Data6/bioconductor_R/Rclub2017_spring/Rclub-r4ds_Kazu.Nozue/summary.table.FT.rCol.Rdata")
+# summary plot (FT)
+FT.moreSAmutSASdata<-plot.bar7(trait="bolted days",title="FT",ylabel="days at bolting",data.input=merge(summary.table.FT.rCol.rSun,summary.table.FT.rCol.rShade,by="plant"),save.plot=F,show.plot=T,rownum=1,RFRratio=T)+ scale_fill_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred")) + scale_colour_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred"))
+FT.moreSAmutSASdata
 ```
