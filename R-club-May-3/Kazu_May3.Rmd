@@ -1,0 +1,99 @@
+---
+title: "Rclub2017_spring_Kazu"
+author: "Kazu"
+date: "5/3/2017"
+output: 
+  html_document: 
+    keep_md: yes
+---
+# Prerequisites
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2);library(tidyverse)
+```
+# 3.6
+```{r}
+ggplot(data = mpg) +
+  geom_smooth(mapping = aes(x = displ, y = hwy))
+              
+ggplot(data = mpg) +
+  geom_smooth(mapping = aes(x = displ, y = hwy, group = drv))
+    
+ggplot(data = mpg) +
+  geom_smooth(
+    mapping = aes(x = displ, y = hwy, group = drv)
+  )
+# multiple geoms
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy)) +
+  geom_smooth(mapping = aes(x = displ, y = hwy))
+# filter
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+  geom_point(mapping = aes(color = class)) + 
+  geom_smooth(data = filter(mpg, class == "subcompact"), se = FALSE)
+```
+# 3.6 Exercises
+```{r}
+#1. What geom would you use to draw a line chart? A boxplot? A histogram? An area chart?
+?geom_line()
+?geom_boxplot() #or
+?geom_violin()
+?geom_area()
+#2. Run this code in your head and predict what the output will look like. Then, run the code in R and check your predictions.
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy, color = drv)) + 
+  geom_point()
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy, color = drv)) + 
+  geom_point() + 
+  geom_smooth(se = FALSE)
+#3. What does show.legend = FALSE do? What happens if you remove it?
+ggplot() + 
+  geom_point(data = mpg, mapping = aes(x = displ, y = hwy, color = drv),show.legend=FALSE)
+  geom_smooth(data = mpg, mapping = aes(x = displ, y = hwy, color = drv),se = FALSE,show.legend=FALSE)
+# Why do you think I used it earlier in the chapter?
+# with default
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, color = class))
+# show.legend=FALSE (no legend)
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, color = class),show.legend=FALSE)
+#4. What does the se argument to geom_smooth() do?
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy, color = drv)) + 
+  geom_point() + 
+  geom_smooth(se = TRUE) #  displaying confidence interval around smooth
+
+#5. Will these two graphs look different? Why/why not?
+# the same. The first one shared data and aes setting, while the second one used the same data and aes in different geom.
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+  geom_point() + 
+  geom_smooth()
+
+ggplot() + 
+  geom_point(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+  geom_smooth(data = mpg, mapping = aes(x = displ, y = hwy))
+#6. Recreate the R code necessary to generate the following graphs.
+p1<-ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+  geom_point() + 
+  geom_smooth(se=FALSE)
+p2<-ggplot(data = mpg, mapping = aes(x = displ, y = hwy,group=drv)) + 
+  geom_point() + 
+  geom_smooth(se=FALSE)
+p3<-ggplot(data = mpg, mapping = aes(x = displ, y = hwy,group=drv,color=drv)) + 
+  geom_point() + 
+  geom_smooth(se=FALSE)
+p4<-ggplot(data = mpg, mapping = aes(x = displ, y = hwy,color=drv)) + 
+  geom_point() + 
+  geom_smooth(aes(group=FALSE),se=FALSE)
+p5<-ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+  geom_point(aes(color=drv)) + 
+  geom_smooth(se=FALSE,aes(linetype=drv))
+p6<-ggplot() + 
+  geom_point(data = mpg, mapping = aes(x = displ, y = hwy,fill=drv),shape = 21,size=5,stroke=2,colour="white") 
+library(cowplot)
+plot.all<-plot_grid(p1,p2,p3,p4,p5,p6,
+  ncol=2,nrow=3,labels=c("A","B","C","D","E","F"),rel_widths=c(1,1,1,1,1,1)
+  )
+save_plot("R-club-May-3/3.6.6.png", plot.all, ncol = 2, nrow = 3,base_aspect_ratio = 0.8)
+
+
+
+```
