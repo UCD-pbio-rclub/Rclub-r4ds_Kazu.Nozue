@@ -184,3 +184,171 @@ load("/Volumes/data_work/Data6/bioconductor_R/Rclub2017_spring/Rclub-r4ds_Kazu.N
 FT.moreSAmutSASdata<-plot.bar7(trait="bolted days",title="FT",ylabel="days at bolting",data.input=merge(summary.table.FT.rCol.rSun,summary.table.FT.rCol.rShade,by="plant"),save.plot=F,show.plot=T,rownum=1,RFRratio=T)+ scale_fill_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred")) + scale_colour_manual( values = c("high \nR/FR" = "red","low \nR/FR" = "darkred"))
 FT.moreSAmutSASdata
 ```
+# 3.7.1 Exercises
+```{r}
+# 1. What is the default geom associated with stat_summary()? 
+?geom_summary
+#1.2 How could you rewrite the previous plot to use that geom function instead of the stat function?
+# original
+ggplot(data = diamonds) + geom_bar
+  stat_summary(
+    mapping = aes(x = cut, y = depth),
+    fun.ymin = min,
+    fun.ymax = max,
+    fun.y = median
+  )
+# John's way
+ggplot(data=diamonds,aes(x=cut,y=depth)) + geom_pointrange(stat = "summary", fun.ymin = min, fun.ymax = max, fun.y = median)
+
+#2. What does geom_col() do? How is it different to geom_bar()?
+?geom_col
+?geom_bar
+
+#3. Most geoms and stats come in pairs that are almost always used in concert. Read through the documentation and make a list of all the pairs. What do they have in common?
+
+#4. What variables does stat_smooth() compute? What parameters control its behaviour?
+
+#5. In our proportion bar chart, we need to set group = 1. Why? In other words what is the problem with these two graphs?
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut, y = ..prop..))
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut, fill = color, y = ..prop..))
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut, fill = color, y = ..prop..,group=1))
+
+
+```
+
+# 3.8.1 Exercises
+```{r}
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut, fill = clarity), position = "fill")
+
+ggplot(data = diamonds, mapping = aes(x = cut, fill = clarity)) + 
+  geom_bar(alpha = 1/5, position = "identity")
+ggplot(data = diamonds, mapping = aes(x = cut, colour = clarity)) + 
+  geom_bar(fill = NA, position = "identity")
+
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut, fill = clarity), position = "dodge")
+
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy))
+
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy), position = "jitter")
+
+#1. What is the problem with this plot? How could you improve it?
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) + 
+  geom_point()
+# answer
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) + 
+  geom_jitter()
+
+#2. What parameters to geom_jitter() control the amount of jittering?
+?geom_jitter()
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) + 
+  geom_jitter()
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) + 
+  geom_jitter(width=0.05)
+
+#3. Compare and contrast geom_jitter() with geom_count().
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) + 
+  geom_jitter()
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) + 
+  geom_count() 
+
+#4. What’s the default position adjustment for geom_boxplot()? Create a visualisation of the mpg dataset that demonstrates it.
+# head(mpg)
+# # A tibble: 6 × 11
+#   manufacturer model displ  year   cyl      trans   drv   cty   hwy    fl   class
+#          <chr> <chr> <dbl> <int> <int>      <chr> <chr> <int> <int> <chr>   <chr>
+# 1         audi    a4   1.8  1999     4   auto(l5)     f    18    29     p compact
+# 2         audi    a4   1.8  1999     4 manual(m5)     f    21    29     p compact
+# 3         audi    a4   2.0  2008     4 manual(m6)     f    20    31     p compact
+# 4         audi    a4   2.0  2008     4   auto(av)     f    21    30     p compact
+# 5         audi    a4   2.8  1999     6   auto(l5)     f    16    26     p compact
+# 6         audi    a4   2.8  1999     6 manual(m5)     f    18    26     p compact
+?geom_boxplot() # default is "dodge"
+ggplot(data = mpg, mapping = aes(x = class, y = hwy)) + 
+  geom_boxplot(position="dodge")
+ggplot(data = mpg, mapping = aes(x = class, y = hwy)) + 
+  geom_boxplot(position="stack")
+ggplot(data = mpg, mapping = aes(x = class, y = hwy)) + 
+  geom_boxplot(position="stack")
+ggplot(data = mpg, mapping = aes(x = drv, y = hwy)) + 
+  geom_boxplot(position=position_dodge(4)) # ?
+
+
+
+```
+# 3.9 Coordinate systems
+```{r}
+ggplot(data = mpg, mapping = aes(x = class, y = hwy)) + 
+  geom_boxplot()
+ggplot(data = mpg, mapping = aes(x = class, y = hwy)) + 
+  geom_boxplot()+
+  coord_flip()
+#
+nz <- map_data("nz")
+
+ggplot(nz, aes(long, lat, group = group)) +
+  geom_polygon(fill = "white", colour = "black")
+
+ggplot(nz, aes(long, lat, group = group)) +
+  geom_polygon(fill = "white", colour = "black") +
+  coord_quickmap()
+#
+bar <- ggplot(data = diamonds) + 
+  geom_bar(
+    mapping = aes(x = cut, fill = cut), 
+    show.legend = FALSE,
+    width = 1
+  ) + 
+  theme(aspect.ratio = 1) +
+  labs(x = NULL, y = NULL)
+
+bar + coord_flip()
+bar + coord_polar()
+# 
+```
+# 3.9.1 Exercises
+```{r}
+#1. Turn a stacked bar chart into a pie chart using coord_polar().
+bar <- ggplot(data = diamonds) + 
+  geom_bar(
+    mapping = aes(x = cut, fill = cut), 
+    show.legend = FALSE,
+    width = 1
+  ) + 
+  theme(aspect.ratio = 1) +
+  labs(x = NULL, y = NULL)
+
+p<-ggplot(data=diamonds) + bar + coord_polar()
+#
+bar <- ggplot(data = diamonds, aes(cut,fill=color))
+bar <- bar + geom_bar() + labs(x = NULL, y = NULL, title = "Cuts and Colors")
+bar + coord_polar()
+
+#2. What does labs() do? Read the documentation.
+
+#3. What’s the difference between coord_quickmap() and coord_map()?
+?coord_quickmap()
+?coord_map()
+#4. What does the plot below tell you about the relationship between city and highway mpg? Why is coord_fixed() important? What does geom_abline() do
+?coord_fixed()
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) +
+  geom_point()
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) +
+  geom_abline()
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) +
+  geom_point() + 
+  geom_abline() +
+  coord_fixed(ratio=1)
+
+```
+# 4.4 Practice
+```{r}
+
+
+```
