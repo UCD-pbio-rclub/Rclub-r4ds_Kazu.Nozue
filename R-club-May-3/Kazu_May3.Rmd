@@ -279,7 +279,23 @@ ggplot(data = mpg, mapping = aes(x = class, y = hwy)) +
 ggplot(data = mpg, mapping = aes(x = drv, y = hwy)) + 
   geom_boxplot(position=position_dodge(4)) # ?
 
-
+## usage of ..prop.. and group
+?geom_count
+# Display proportions instead of counts -------------------------------------
+# By default, all categorical variables in the plot form the groups.
+# Specifying geom_count without a group identifier leads to a plot which is
+# not useful:
+d <- ggplot(diamonds, aes(x = cut, y = clarity))
+d + geom_count(aes(size = ..prop..))
+# To correct this problem and achieve a more desirable plot, we need
+# to specify which group the proportion is to be calculated over.
+d + geom_count(aes(size = ..prop.., group = 2)) +
+  scale_size_area(max_size = 10)
+# Or group by x/y variables to have rows/columns sum to 1.
+d + geom_count(aes(size = ..prop.., group = cut)) +
+  scale_size_area(max_size = 10)
+d + geom_count(aes(size = ..prop.., group = clarity)) +
+  scale_size_area(max_size = 10)
 
 ```
 # 3.9 Coordinate systems
@@ -349,6 +365,17 @@ ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) +
 ```
 # 4.4 Practice
 ```{r}
+
+
+```
+# extra
+```{r}
+# multiple plots in one area
+## Stacey use https://cran.r-project.org/web/packages/gridExtra/index.html
+## I use cowplot package
+
+# significant "*" mark
+## install ggsignif package. Use geom_signif (John found it)
 
 
 ```
