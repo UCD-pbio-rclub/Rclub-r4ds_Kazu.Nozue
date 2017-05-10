@@ -138,6 +138,8 @@ select(flights, dep_time,dep_time, dep_time) # only showing once
 #3. What does the one_of() function do? Why might it be helpful in conjunction with this vector?
 vars <- c("year", "month", "day", "dep_delay", "arr_delay")
 select(flights,one_of(vars))
+select(flights,one_of(vars),3)
+
 #select(flights, vars) # does not work
 
 #4. Does the result of running the following code surprise you? How do the select helpers deal with case by default? How can you change that default?
@@ -180,10 +182,12 @@ transmute(flights,
   minute = dep_time %% 100
 )
 # lead
+
 # lag 
 # Use order_by if data not already ordered (from ?lag)
 df <- data.frame(year = 2000:2005, value = (0:5) ^ 2)
 scrambled <- df[sample(nrow(df)), ]
+scrambled
 wrong <- mutate(scrambled, prev = lag(value))
 arrange(wrong, year)
 right <- mutate(scrambled, prev = lag(value, order_by = year))
