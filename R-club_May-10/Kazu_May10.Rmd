@@ -128,6 +128,7 @@ arrange(flights,!desc(distance))
 ```{r}
 #1. Brainstorm as many ways as possible to select dep_time, dep_delay, arr_time, and arr_delay from flights.
 select(flights,dep_time, dep_delay,arr_time,arr_delay)
+select(flights,starts_with("dep"),starts_with("arr"))
 flights[,c("dep_time","dep_delay","arr_time","arr_delay")]
 flights[,colnames(flights) %in% c("dep_time","dep_delay","arr_time","arr_delay")]
 
