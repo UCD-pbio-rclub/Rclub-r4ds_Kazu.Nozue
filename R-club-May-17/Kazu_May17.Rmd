@@ -192,10 +192,10 @@ not_cancelled.selected<- not_cancelled %>%
 #%>% filter(percent.thirty.mim.early>30 & percent.thirty.mim.delay>50)
 ## 99% of the time a flight is on time. 1% of the time it’s 2 hours late.
 
-#2. Which is more important: arrival delay or departure delay?
+# Which is more important: arrival delay or departure delay?
 
 
-#3. Come up with another approach that will give you the same output as not_cancelled %>% count(dest) and not_cancelled %>% count(tailnum, wt = distance) (without using count()).
+#2. Come up with another approach that will give you the same output as not_cancelled %>% count(dest) and not_cancelled %>% count(tailnum, wt = distance) (without using count()).
 not_cancelled %>% count(dest) 
 # alternative
 not_cancelled %>% group_by(dest) %>%
@@ -205,7 +205,7 @@ not_cancelled %>% count(tailnum, wt = distance) %>% arrange(desc(n))
 # alternative
 not_cancelled %>% group_by(tailnum) %>% select(tailnum,distance) %>% arrange(desc(distance))
 
-#4. Our definition of cancelled flights (is.na(dep_delay) | is.na(arr_delay) ) is slightly suboptimal. Why? Which is the most important column?
+#3. Our definition of cancelled flights (is.na(dep_delay) | is.na(arr_delay) ) is slightly suboptimal. Why? Which is the most important column?
 
 #5. Look at the number of cancelled flights per day. Is there a pattern? Is the proportion of cancelled flights related to the average delay?
   
