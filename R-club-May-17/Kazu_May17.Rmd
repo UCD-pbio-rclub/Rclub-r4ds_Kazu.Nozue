@@ -151,14 +151,46 @@ daily %>%
 #1. Brainstorm at least 5 different ways to assess the typical delay characteristics of a group of flights. Consider the following scenarios:
 ## A flight is 15 minutes early 50% of the time, and 15 minutes late 50% of the time.
 colnames(not_cancelled)
-ggplot(select(not_cancelled,air_time),geom="histogram")
-not_cancelled %>% mutate(percent_delay=(dep_delay+arr_delay)/air_time)
+## early ver1
+fif.min.early.1 <- not_cancelled %>% group_by(tailnum) %>% summarise(fifteen.mim.early=sum(dep_delay == -15),num=n(),percent.fifteen.mim.early=fifteen.mim.early/num * 100)
+fif.minearly.1%>% filter(percent.fifteen.mim.early >= 50) %>% arrange(desc(percent.fifteen.mim.early))
+## early ver2
+fif.min.early.2<- not_cancelled %>% 
+  group_by(tailnum) %>% 
+  summarise(fifteen.mim.early_perc2 = mean(dep_delay == -15) * 100) # mean of T/F is proportion!
+# correlation of ver1 and ver2
+cor.1.2<-inner_join(fif.min.early.1,fif.min.early.2,by="tailnum")
+ggplot(data=cor.1.2,aes(x=percent.fifteen.mim.early,y=fifteen.mim.early_perc2)) + geom_point()
+
+## late 
+### ver1
+fif.min.late1<- not_cancelled %>% 
+  group_by(tailnum) %>% 
+  summarise(fifteen.mim.delay=sum(dep_delay == 15),num=n(),percent.fifteen.mim.delay=fifteen.mim.delay/num * 100) %>% filter(percent.fifteen.mim.delay >= 50) %>% 
+  arrange(desc(percent.fifteen.mim.delay))
+### ver2
+fif.min.late2<- not_cancelled %>% 
+  group_by(tailnum) %>% 
+  summarise(fifteen.mim.late_perc2 = mean(dep_delay == 15) * 100) 
 
 ## A flight is always 10 minutes late.
+### ver1
+not_cancelled %>% group_by(tailnum) %>% summarise(ten.mim.delay=sum(dep_delay ==10),num=n(),percent.ten.mim.delay=ten.mim.delay/num * 100) %>% ggplot() + geom_histogram(mapping=aes(x=percent.ten.mim.delay))
 
-
+not_cancelled %>% group_by(tailnum) %>% summarise(ten.mim.delay=sum(dep_delay ==10),num=n(),percent.ten.mim.delay=ten.mim.delay/num * 100) %>% arrange(desc(percent.ten.mim.delay)) # none
+### ver2
+ten.min.late2<- not_cancelled %>% 
+  group_by(tailnum) %>% 
+  summarise(ten.mim.late_perc2 = mean(dep_delay == 10) * 100) 
+arrange(ten.min.late2,desc(ten.mim.late_perc2)) # none
 
 ## A flight is 30 minutes early 50% of the time, and 30 minutes late 50% of the time.
+not_cancelled.selected<- not_cancelled %>% 
+  group_by(tailnum) %>% 
+  summarise(thirty.mim.early=sum(dep_delay == -30),thirty.mim.delay=sum(dep_delay ==30),num=n(),percent.thirty.mim.early=thirty.mim.early/num * 100, percent.thirty.mim.delay=thirty.mim.delay/num * 100)
+
+
+#%>% filter(percent.thirty.mim.early>30 & percent.thirty.mim.delay>50)
 ## 99% of the time a flight is on time. 1% of the time it’s 2 hours late.
 
 #2. Which is more important: arrival delay or departure delay?
@@ -215,10 +247,26 @@ popular_dests %>%
 #1. Refer back to the lists of useful mutate and filtering functions. Describe how each operation changes when you combine it with grouping.
 
 #2. Which plane (tailnum) has the worst on-time record?
+summary.online<-
+  not_cancelled %>% group_by(tailnum) %>%
+  summarise(dep.ontime=mean(dep_delay==0), arr.ontime=mean(arr_delay==0))
+filter(summary.online,dep.ontime==0 & arr.ontime==0)
+ggplot(summary.online, aes(x=dep.ontime,y=arr.ontime)) + geom_point(alpha=0.5)
 
 #3. What time of day should you fly if you want to avoid delays as much as possible?
+summary.delay<-not_cancelled %>% group_by(month, day) %>%
+  summarise(dep.delay=mean(dep_delay),arr.delay=mean(arr_delay))
+library(reshape2)
+summary.delay.melt<-melt(summary.delay,id.var=c("month","day"))
+ggplot(summary.delay.melt,aes(x=day,y=value,color=variable)) + geom_point() + facet_grid(month~.)
 
 #4. For each destination, compute the total minutes of delay. For each, flight, compute the proportion of the total delay for its destination.
+summary.delay2<-not_cancelled %>% group_by(dest) %>%
+  summarise(dest.delay.total=sum(dep_delay))
+summary.delay3<-not_cancelled %>% group_by(dest,tailnum) %>%
+  summarise(delay.total=sum(dep_delay))
+summary.delay4<-inner_join(summary.delay2,summary.delay3,by="dest")
+mutate(summary.delay4,delay_proc=delay.total/dest.delay.total)
 
 #5. Delays are typically temporally correlated: even once the problem that caused the initial delay has been resolved, later flights are delayed to allow earlier flights to leave. Using lag() explore how the delay of a flight is related to the delay of the immediately preceding flight.
 
