@@ -205,14 +205,24 @@ not_cancelled %>% count(tailnum, wt = distance) %>% arrange(desc(n))
 # alternative
 not_cancelled %>% group_by(tailnum) %>% select(tailnum,distance) %>% arrange(desc(distance))
 
+not_cancelled %>% group_by(tailnum) %>% summarise(sum(distance))  #?
+
+
 #3. Our definition of cancelled flights (is.na(dep_delay) | is.na(arr_delay) ) is slightly suboptimal. Why? Which is the most important column?
+# ?
 
-#5. Look at the number of cancelled flights per day. Is there a pattern? Is the proportion of cancelled flights related to the average delay?
+#4. Look at the number of cancelled flights per day. Is there a pattern? Is the proportion of cancelled flights related to the average delay?
+not_cancelled %>% group_by(year, month, day) %>% 
+
+#6. Which carrier has the worst delays? Challenge: can you disentangle the effects of bad airports vs. bad carriers? # Why/why not? (Hint: think about flights %>% group_by(carrier, dest) %>% summarise(n()))
+ not_cancelled %>% group_by(carrier) 
+
+summarise(mean.arr.delay=mean(arr_delay))
   
-
-#6. Which carrier has the worst delays? Challenge: can you disentangle the effects of bad airports vs. bad carriers? Why/why not? (Hint: think about flights %>% group_by(carrier, dest) %>% summarise(n()))
-
+  
 #7. What does the sort argument to count() do. When might you use it?
+
+
 ```
 # 5.7 Grouped mutates (and filters)
 ```{r}
@@ -260,7 +270,8 @@ summary.online<-
   not_cancelled %>% group_by(tailnum) %>%
   summarise(dep.ontime=mean(dep_delay==0), arr.ontime=mean(arr_delay==0))
 filter(summary.online,dep.ontime==0 & arr.ontime==0)
-ggplot(summary.online, aes(x=dep.ontime,y=arr.ontime)) + geom_point(alpha=0.5)
+
+# ggplot(summary.online, aes(x=dep.ontime,y=arr.ontime)) + geom_point(alpha=0.5)
 
 #3. What time of day should you fly if you want to avoid delays as much as possible?
 summary.delay<-not_cancelled %>% group_by(month, day) %>%
