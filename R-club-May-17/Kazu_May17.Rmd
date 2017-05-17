@@ -1,5 +1,5 @@
 ---
-title: "Kazu_May10"
+title: "Kazu_May17"
 author: "Kazu"
 date: "5/3/2017"
 output: 
@@ -150,7 +150,14 @@ daily %>%
 ```{r}
 #1. Brainstorm at least 5 different ways to assess the typical delay characteristics of a group of flights. Consider the following scenarios:
 ## A flight is 15 minutes early 50% of the time, and 15 minutes late 50% of the time.
+colnames(not_cancelled)
+ggplot(select(not_cancelled,air_time),geom="histogram")
+not_cancelled %>% mutate(percent_delay=(dep_delay+arr_delay)/air_time)
+
 ## A flight is always 10 minutes late.
+
+
+
 ## A flight is 30 minutes early 50% of the time, and 30 minutes late 50% of the time.
 ## 99% of the time a flight is on time. 1% of the time it’s 2 hours late.
 
@@ -165,4 +172,59 @@ daily %>%
 #6. Which carrier has the worst delays? Challenge: can you disentangle the effects of bad airports vs. bad carriers? Why/why not? (Hint: think about flights %>% group_by(carrier, dest) %>% summarise(n()))
 
 #7. What does the sort argument to count() do. When might you use it?
+```
+# 5.7 Grouped mutates (and filters)
+```{r}
+## find worst members of each group
+### from previous section
+flights_sml <- select(flights, 
+  year:day, 
+  ends_with("delay"), 
+  distance, 
+  air_time
+)
+mutate(flights_sml,
+  gain = arr_delay - dep_delay,
+  speed = distance / air_time * 60
+)
+# View(flights_sml) # view all columns 
+## 
+mutate(flights_sml,
+  gain = arr_delay - dep_delay,
+  hours = air_time / 60,
+  gain_per_hour = gain / hours
+)
+
+flights_sml %>% 
+  group_by(year, month, day) %>%
+  filter(rank(desc(arr_delay)) < 10)
+## Find all groups bigger than a threshold:
+popular_dests <- flights %>% 
+  group_by(dest) %>% 
+  filter(n() > 365)
+popular_dests
+## Standardise to compute per group metrics:
+popular_dests %>% 
+  filter(arr_delay > 0) %>% 
+  mutate(prop_delay = arr_delay / sum(arr_delay)) %>% 
+  select(year:day, dest, arr_delay, prop_delay)
+
+```
+# 5.7.1 Exercises
+```{r}
+#1. Refer back to the lists of useful mutate and filtering functions. Describe how each operation changes when you combine it with grouping.
+
+#2. Which plane (tailnum) has the worst on-time record?
+
+#3. What time of day should you fly if you want to avoid delays as much as possible?
+
+#4. For each destination, compute the total minutes of delay. For each, flight, compute the proportion of the total delay for its destination.
+
+#5. Delays are typically temporally correlated: even once the problem that caused the initial delay has been resolved, later flights are delayed to allow earlier flights to leave. Using lag() explore how the delay of a flight is related to the delay of the immediately preceding flight.
+
+#6. Look at each destination. Can you find flights that are suspiciously fast? (i.e. flights that represent a potential data entry error). Compute the air time a flight relative to the shortest flight to that destination. Which flights were most delayed in the air?
+
+#7. Find all destinations that are flown by at least two carriers. Use that information to rank the carriers.
+
+# For each plane, count the number of flights before the first delay of greater than 1 hour.
 ```

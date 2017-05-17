@@ -203,47 +203,83 @@ arrange(right, year)
 # as.POSIXct(as.character(flights$dep_time),format="%I%M") # does work only for two digits hour
 # strptime(flights$dep_time,"%H%M")[1:10] # does not work
 #strptime(sprintf("%04d",flights$dep_time),"%H%M")[1:10] # does work
-mutate(flights,
-       dep_time_min=as.POSIXct(sprintf("%04d",flights$dep_time),format="%H%M")-as.POSIXct("0000",format="%H%M"))
+# mutate(flights,       dep_time_min=as.POSIXct(sprintf("%04d",flights$dep_time),format="%H%M")-as.POSIXct("0000",format="%H%M"))
 # colnames(flights) # does not work
 
+transmute(flights,
+          dep_time, dep_time2 = dep_time %/% 100 * 60 + dep_time %% 100, 
+          sched_dep_time, sched_dep_time2 = sched_dep_time %/% 100 * 60 + sched_dep_time %% 100)
 
 #2. Compare air_time with arr_time - dep_time. What do you expect to see? What do you see? What do you need to do to fix it?
 transmute(flights,air_time,dep_time,arr_time - dep_time)
-# library(lubridate)
+library(lubridate)
 # needs to use appropriate date/time format (I do not remember how to say)
 # hm(as.character(flights$dep_time)) # does not work
 # hm(as.character(flights$dep_time)) # does not work
-transmute(flights,air_time,dep_time,dep_time_delay=as.POSIXct(sprintf("%04d",flights$arr_time),format="%H%M") - as.POSIXct(sprintf("%04d",flights$dep_time),format="%H%M"))
+# transmute(flights,air_time,dep_time,dep_time_delay=as.POSIXct(sprintf("%04d",flights$arr_time),format="%H%M") - as.POSIXct(sprintf("%04d",flights$dep_time),format="%H%M"))
+## see Julin's scripts ####
+ggplot(flights, aes(x=air_time, y = (arr_time-dep_time))) + geom_point(alpha=.1)
+flights2<-transmute(flights,
+          arr_time2 = dep_time %/% 100 * 60 + dep_time %% 100, 
+          dep_time2 = dep_time %/% 100 * 60 + dep_time %% 100)
+## how about to add date?
+flights3<-transmute(flights,paste=paste(year,month,day," ",arr_time %/% 100,arr_time %% 100), arr_date_time=ymd_hm(paste(year,month,day," ",arr_time %/% 100,arr_time %% 100)))
+filter(flights3,is.na(arr_date_time)) # there are =8713 is.na in arr_time 
+transmute(flights,arr_time.h=arr_time %/% 100,arr_time.m=arr_time %% 100)
+# therefore
+flights.nona <- flights %>% 
+  filter(!is.na(arr_time), !is.na(dep_time))
+summary(flights.nona)
+mutate(flights.nona,arr_date_time=ymd_hm(paste(year,month,day," ",arr_time %/% 100,arr_time %% 100)),
+                dep_date_time=ymd_hm(paste(year,month,day," ",dep_time %/% 100,dep_time %% 100)),
+                air_time2=arr_date_time-dep_date_time)
+summary(flights.nona)
 
+flights.nona2<-transmute(flights.nona,air_time,day,
+                arr_date_time=ymd_hm(paste(year,month,day," ",arr_time %/% 100,arr_time %% 100)),
+                dep_date_time=ymd_hm(paste(year,month,day," ",dep_time %/% 100,dep_time %% 100)),
+                air_time2=arr_date_time-dep_date_time)
+summary(flights.nona2)
+ggplot(flights.nona2, aes(x=air_time, y = air_time2)) + geom_point(alpha=.1) # not quite right. air_time2 <0 seems overnight flight 
+mutate(flights.nona2,day.arr=ifelse(arr_date_time - dep_date_time<0,day+1,day))
+summary(flights.nona2)
 
 #3. Compare dep_time, sched_dep_time, and dep_delay. How would you expect those three numbers to be related?
+transmute(flights,air_time,new_air_time=air_time_dep_time)
+
 transmute(flights,dep_time,sched_dep_time,dep_delay) #dep_time - sched_dep_time = dep_delay
+mutate(flights,new_dep_delay=dep_time - sched_dep_time) #dep_time - sched_dep_time = dep_delay
+
 
 #4. Find the 10 most delayed flights using a ranking function. How do you want to handle ties? Carefully read the documentation for min_rank().
+summary(flights)
 arrange(flights,!desc(dep_delay))# does  work
 arrange(flights,min_rank(dep_delay))# does  work
+## see Stacey's scripts ####
 
+
+## reorder column (Q from Akiva)
+select(flights, year:day,carrier, dep_time:arr_delay)
 
 #5. What does 1:3 + 1:10 return? Why?
 1:3 + 1:10 
 c(1+1,2+2, 3+3, 1+4,2+5,3+6,1+7,2+8,3+9,1+10)
 
 #6. What trigonometric functions does R provide?
-# x <- seq(-3, 7, by = 1/8)
-# 
-# cos(x)
-# sin(x)
-# tan(x)
-# 
-# acos(x)
-# asin(x)
-# atan(x)
-# atan2(y, x)
-# 
-# cospi(x)
-# sinpi(x)
-# tanpi(x)
+x <- seq(-3, 7, by = 1/8)
+
+cos(x)
+sin(x)
+tan(x)
+
+acos(x)
+asin(x)
+atan(x)
+atan2(y, x)
+
+cospi(x)
+sinpi(x)
+tanpi(x)
 # 
 # head(x)
 # tx <- cbind(x, cos(pi*x), cospi(x), sin(pi*x), sinpi(x),
