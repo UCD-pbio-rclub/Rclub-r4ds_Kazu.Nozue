@@ -189,17 +189,26 @@ not_cancelled.selected<- not_cancelled %>%
   group_by(tailnum) %>% 
   summarise(thirty.mim.early=sum(dep_delay == -30),thirty.mim.delay=sum(dep_delay ==30),num=n(),percent.thirty.mim.early=thirty.mim.early/num * 100, percent.thirty.mim.delay=thirty.mim.delay/num * 100)
 
-
 #%>% filter(percent.thirty.mim.early>30 & percent.thirty.mim.delay>50)
 ## 99% of the time a flight is on time. 1% of the time it’s 2 hours late.
 
 #2. Which is more important: arrival delay or departure delay?
 
+
 #3. Come up with another approach that will give you the same output as not_cancelled %>% count(dest) and not_cancelled %>% count(tailnum, wt = distance) (without using count()).
+not_cancelled %>% count(dest) 
+# alternative
+not_cancelled %>% group_by(dest) %>%
+  summarise(n())
+## challenge2
+not_cancelled %>% count(tailnum, wt = distance) %>% arrange(desc(n))
+# alternative
+not_cancelled %>% group_by(tailnum) %>% select(tailnum,distance) %>% arrange(desc(distance))
 
 #4. Our definition of cancelled flights (is.na(dep_delay) | is.na(arr_delay) ) is slightly suboptimal. Why? Which is the most important column?
 
 #5. Look at the number of cancelled flights per day. Is there a pattern? Is the proportion of cancelled flights related to the average delay?
+  
 
 #6. Which carrier has the worst delays? Challenge: can you disentangle the effects of bad airports vs. bad carriers? Why/why not? (Hint: think about flights %>% group_by(carrier, dest) %>% summarise(n()))
 
@@ -269,6 +278,8 @@ summary.delay4<-inner_join(summary.delay2,summary.delay3,by="dest")
 mutate(summary.delay4,delay_proc=delay.total/dest.delay.total)
 
 #5. Delays are typically temporally correlated: even once the problem that caused the initial delay has been resolved, later flights are delayed to allow earlier flights to leave. Using lag() explore how the delay of a flight is related to the delay of the immediately preceding flight.
+
+
 
 #6. Look at each destination. Can you find flights that are suspiciously fast? (i.e. flights that represent a potential data entry error). Compute the air time a flight relative to the shortest flight to that destination. Which flights were most delayed in the air?
 
