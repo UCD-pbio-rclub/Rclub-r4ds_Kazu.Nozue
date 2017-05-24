@@ -510,14 +510,218 @@ ggplot(data = mpg) +
 
 ```r
 #1. Use what you’ve learned to improve the visualisation of the departure times of cancelled vs. non-cancelled flights.
+## I assumed that this is talking about scheduled departure times
+flights %>% mutate(cancelled=is.na(dep_time)) %>% group_by(sched_dep_time) %>% summarise(count.na=sum(is.na(dep_time)),prop.cancel=count.na/n()*100) %>%  ggplot(aes(x=sched_dep_time,y=prop.cancel)) + geom_boxplot(aes(group = cut_width(sched_dep_time, 30))) + coord_cartesian(ylim = c(0, 60))
+```
 
+![](May24_Kazu_files/figure-html/unnamed-chunk-8-1.png)<!-- -->
+
+```r
 #2. What variable in the diamonds dataset is most important for predicting the price of a diamond? How is that variable correlated with cut? Why does the combination of those two relationships lead to lower quality diamonds being more expensive?
+ggplot(diamonds,aes(x=carat,y=price)) + geom_point()
+```
 
+![](May24_Kazu_files/figure-html/unnamed-chunk-8-2.png)<!-- -->
+
+```r
+ggplot(diamonds,aes(x=cut,y=price)) + geom_boxplot()
+```
+
+![](May24_Kazu_files/figure-html/unnamed-chunk-8-3.png)<!-- -->
+
+```r
+ggplot(diamonds) + geom_boxplot(aes(x=reorder(color,price, FUN = median),y=price))
+```
+
+![](May24_Kazu_files/figure-html/unnamed-chunk-8-4.png)<!-- -->
+
+```r
+ggplot(diamonds,aes(x=depth,y=price)) + geom_boxplot(aes(group=cut_width(depth,5))) # why width are not equal?
+```
+
+![](May24_Kazu_files/figure-html/unnamed-chunk-8-5.png)<!-- -->
+
+```r
+ggplot(diamonds,aes(x=table,y=price)) + geom_boxplot(aes(group=cut_width(table,5)))
+```
+
+![](May24_Kazu_files/figure-html/unnamed-chunk-8-6.png)<!-- -->
+
+```r
 #3. Install the ggstance package, and create a horizontal boxplot. How does this compare to using coord_flip()?
+#install.packages("ggstance")
+library(ggstance)
+```
 
+```
+## 
+## Attaching package: 'ggstance'
+```
+
+```
+## The following objects are masked from 'package:ggplot2':
+## 
+##     geom_errorbarh, GeomErrorbarh
+```
+
+```r
+ggplot(diamonds,aes(x=table,y=price)) + geom_boxploth(aes(group=cut_width(table,5))) #?
+```
+
+```
+## Warning: position_dodgev requires non-overlapping y intervals
+```
+
+![](May24_Kazu_files/figure-html/unnamed-chunk-8-7.png)<!-- -->
+
+```r
 #4. One problem with boxplots is that they were developed in an era of much smaller datasets and tend to display a prohibitively large number of “outlying values”. One approach to remedy this problem is the letter value plot. Install the lvplot package, and try using geom_lv() to display the distribution of price vs cut. What do you learn? How do you interpret the plots?
+#install.packages("lvplot")
+#library(lvplot)
+# ?geom_lv
+#p <- ggplot(mpg, aes(class, hwy))
+#p + geom_lv(aes(fill=..LV..)) + scale_fill_brewer()
+# Error: GeomLv was built with an incompatible version of ggproto.
+# Please reinstall the package that provides this extension.
+# solution?
+
 
 #5. Compare and contrast geom_violin() with a facetted geom_histogram(), or a coloured geom_freqpoly(). What are the pros and cons of each method?
+ggplot(diamonds) + geom_violin(aes(x=reorder(color,price, FUN = median),y=price))
+```
 
+![](May24_Kazu_files/figure-html/unnamed-chunk-8-8.png)<!-- -->
+
+```r
+ggplot(diamonds, aes(x=price)) + geom_histogram(binwidth=100) + facet_grid(.~reorder(color,price,FUN=median),scale="free") + coord_flip()
+```
+
+![](May24_Kazu_files/figure-html/unnamed-chunk-8-9.png)<!-- -->
+
+```r
+ggplot(diamonds, aes(x=price,color=color)) + geom_freqpoly(binwidth=100) + coord_flip()
+```
+
+![](May24_Kazu_files/figure-html/unnamed-chunk-8-10.png)<!-- -->
+
+```r
 #6. If you have a small dataset, it’s sometimes useful to use geom_jitter() to see the relationship between a continuous and categorical variable. The ggbeeswarm package provides a number of methods similar to geom_jitter(). List them and briefly describe what each one does.
+#install.packages("ggbeeswarm")
+library(ggbeeswarm)
+```
+# 7.5.2 Two categorical variables
+
+```r
+ggplot(data = diamonds) +
+  geom_count(mapping = aes(x = cut, y = color))
+```
+
+![](May24_Kazu_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
+
+```r
+diamonds %>% 
+  count(color, cut)
+```
+
+```
+## Source: local data frame [35 x 3]
+## Groups: color [?]
+## 
+##    color       cut     n
+##    <ord>     <ord> <int>
+## 1      D      Fair   163
+## 2      D      Good   662
+## 3      D Very Good  1513
+## 4      D   Premium  1603
+## 5      D     Ideal  2834
+## 6      E      Fair   224
+## 7      E      Good   933
+## 8      E Very Good  2400
+## 9      E   Premium  2337
+## 10     E     Ideal  3903
+## # ... with 25 more rows
+```
+
+```r
+# geom_tile
+diamonds %>% 
+  count(color, cut) %>%  
+  ggplot(mapping = aes(x = color, y = cut)) +
+    geom_tile(mapping = aes(fill = n))
+```
+
+![](May24_Kazu_files/figure-html/unnamed-chunk-9-2.png)<!-- -->
+# 7.5.2.1 Exercises
+
+```r
+#1. How could you rescale the count dataset above to more clearly show the distribution of cut within colour, or colour within cut?
+diamonds %>%
+  ggplot(mapping=aes(x=cut)) + geom_bar() + facet_grid(color~., scale="free")
+```
+
+![](May24_Kazu_files/figure-html/unnamed-chunk-10-1.png)<!-- -->
+
+```r
+diamonds %>%
+  ggplot(mapping=aes(x=color)) + geom_bar() + facet_grid(cut~., scale="free")
+```
+
+![](May24_Kazu_files/figure-html/unnamed-chunk-10-2.png)<!-- -->
+
+```r
+#2. Use geom_tile() together with dplyr to explore how average flight delays vary by destination and month of year. What makes the plot difficult to read? How could you improve it?
+average.delay.month.summary<-flights %>% group_by(dest,month) %>% summarise(av.flight.delay=mean(dep_delay,na.rm=T)) %>% filter(!is.na(av.flight.delay))
+average.delay.month.summary
+```
+
+```
+## Source: local data frame [1,112 x 3]
+## Groups: dest [104]
+## 
+##     dest month av.flight.delay
+##    <chr> <int>           <dbl>
+## 1    ABQ     4        2.666667
+## 2    ABQ     5       11.645161
+## 3    ABQ     6       15.466667
+## 4    ABQ     7       24.258065
+## 5    ABQ     8       15.903226
+## 6    ABQ     9       19.166667
+## 7    ABQ    10        4.322581
+## 8    ABQ    11       -2.200000
+## 9    ABQ    12       24.290323
+## 10   ACK     5        9.047619
+## # ... with 1,102 more rows
+```
+
+```r
+ggplot(average.delay.month.summary, aes(x=factor(month),y=dest)) + geom_tile(mapping=aes(fill=av.flight.delay)) # T_SHOW_BACKTRACE environmental variable.
+```
+
+![](May24_Kazu_files/figure-html/unnamed-chunk-10-3.png)<!-- -->
+
+```r
+#3. Why is it slightly better to use aes(x = color, y = cut) rather than aes(x = cut, y = color) in the example above?
+```
+# 7.5.3.1 Exercises
+
+```r
+#1. Instead of summarising the conditional distribution with a boxplot, you could use a frequency polygon. What do you need to consider when using cut_width() vs cut_number()? How does that impact a visualisation of the 2d distribution of carat and price?
+
+#2. Visualise the distribution of carat, partitioned by price.
+
+#3. How does the price distribution of very large diamonds compare to small diamonds. Is it as you expect, or does it surprise you?
+
+#4. Combine two of the techniques you’ve learned to visualise the combined distribution of cut, carat, and price.
+
+#5. Two dimensional plots reveal outliers that are not visible in one dimensional plots. For example, some points in the plot below have an unusual combination of x and y values, which makes the points outliers even though their x and y values appear normal when examined separately.
+
+ggplot(data = diamonds) +
+  geom_point(mapping = aes(x = x, y = y)) +
+  coord_cartesian(xlim = c(4, 11), ylim = c(4, 11))
+```
+
+![](May24_Kazu_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
+
+```r
+# Why is a scatterplot a better display than a binned plot for this case?
 ```
