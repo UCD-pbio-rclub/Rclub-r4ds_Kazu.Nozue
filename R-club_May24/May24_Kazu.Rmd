@@ -147,6 +147,8 @@ mutate(
 ggplot(data=flights.s,aes(x=dep_time,fill=dest)) + geom_histogram(binwidth=100) + theme(legend.position = "none") # Warning message: Removed 8255 rows containing non-finite values (stat_bin). 
 ggplot(data=flights.s,aes(x=dep_time,fill=dest)) + geom_bar() + theme(legend.position = "none")  # Warning message: Removed 8255 rows containing non-finite values (stat_count). 
 
+### add NA into category, NA is treated as one of category (see Stacey's script)
+
 
 #2. What does na.rm = TRUE do in mean() and sum()?
 flights.s %>% group_by(dest) %>% summarise(delay.na.rm = mean(dep_delay, na.rm = TRUE),delay = mean(dep_delay, na.rm = FALSE),count.na=sum(is.na(dep_time))) # na.rm = TRUE is necesary to calculate mean 
@@ -186,11 +188,13 @@ ggplot(diamonds,aes(x=cut,y=price)) + geom_boxplot()
 ggplot(diamonds) + geom_boxplot(aes(x=reorder(color,price, FUN = median),y=price))
 ggplot(diamonds,aes(x=depth,y=price)) + geom_boxplot(aes(group=cut_width(depth,5))) # why width are not equal?
 ggplot(diamonds,aes(x=table,y=price)) + geom_boxplot(aes(group=cut_width(table,5)))
-  
+
+
 #3. Install the ggstance package, and create a horizontal boxplot. How does this compare to using coord_flip()?
 #install.packages("ggstance")
 library(ggstance)
-ggplot(diamonds,aes(x=table,y=price)) + geom_boxploth(aes(group=cut_width(table,5))) #?
+ggplot(diamonds,aes(x=price,y=table)) + geom_boxploth(aes(group=cut_width(table,5))) #?
+
 
 #4. One problem with boxplots is that they were developed in an era of much smaller datasets and tend to display a prohibitively large number of “outlying values”. One approach to remedy this problem is the letter value plot. Install the lvplot package, and try using geom_lv() to display the distribution of price vs cut. What do you learn? How do you interpret the plots?
 #install.packages("lvplot")
@@ -208,11 +212,23 @@ ggplot(diamonds) + geom_violin(aes(x=reorder(color,price, FUN = median),y=price)
 
 ggplot(diamonds, aes(x=price)) + geom_histogram(binwidth=100) + facet_grid(.~reorder(color,price,FUN=median),scale="free") + coord_flip()
 
+ggplot(diamonds, aes(x=price,y=..density..)) + geom_histogram(binwidth=100) + facet_grid(.~reorder(color,price,FUN=median),scale="free") + coord_flip()
+
 ggplot(diamonds, aes(x=price,color=color)) + geom_freqpoly(binwidth=100) + coord_flip()
 
 #6. If you have a small dataset, it’s sometimes useful to use geom_jitter() to see the relationship between a continuous and categorical variable. The ggbeeswarm package provides a number of methods similar to geom_jitter(). List them and briefly describe what each one does.
 #install.packages("ggbeeswarm")
 library(ggbeeswarm)
+ggplot2::qplot(class, hwy, data = ggplot2::mpg, geom='beeswarm')
+  # Generate fake data
+  distro <- data.frame(
+    'variable'=rep(c('runif','rnorm'),each=100),
+    'value'=c(runif(100, min=-3, max=3), rnorm(100))
+  )
+  ggplot2::qplot(variable, value, data = distro, geom='beeswarm')
+  ggplot2::qplot(variable, value, data = distro) +
+    geom_beeswarm(priority='density',cex=2.5)
+
 
 
 ```
@@ -228,12 +244,17 @@ diamonds %>%
   ggplot(mapping = aes(x = color, y = cut)) +
     geom_tile(mapping = aes(fill = n))
 
+
+# 
+ggplot(data = smaller) +
+  geom_bin2d(mapping = aes(x = carat, y = price))
+
 ```
 # 7.5.2.1 Exercises
 ```{r}
 #1. How could you rescale the count dataset above to more clearly show the distribution of cut within colour, or colour within cut?
-diamonds %>%
-  ggplot(mapping=aes(x=cut)) + geom_bar() + facet_grid(color~., scale="free")
+
+diamonds %>%  ggplot(mapping=aes(x=cut)) + geom_bar() + facet_grid(color~., scale="free")
 diamonds %>%
   ggplot(mapping=aes(x=color)) + geom_bar() + facet_grid(cut~., scale="free")
 
@@ -244,16 +265,44 @@ ggplot(average.delay.month.summary, aes(x=factor(month),y=dest)) + geom_tile(map
 
 #3. Why is it slightly better to use aes(x = color, y = cut) rather than aes(x = cut, y = color) in the example above?
 
+
+```
+# 
+```{r}
+smaller
+#install.packages("hexbin")
+library(hexbin)
+ggplot(data = smaller) +
+  geom_hex(mapping = aes(x = carat, y = price))
+
 ```
 # 7.5.3.1 Exercises
 ```{r}
 #1. Instead of summarising the conditional distribution with a boxplot, you could use a frequency polygon. What do you need to consider when using cut_width() vs cut_number()? How does that impact a visualisation of the 2d distribution of carat and price?
 
 #2. Visualise the distribution of carat, partitioned by price.
+smaller <- diamonds %>% 
+  filter(carat < 3)
+ggplot(data = smaller, mapping = aes(x = price, y = carat)) + 
+  geom_boxplot(mapping = aes(group = cut_width(price, 1000)))
+# 
+ggplot(data = smaller, mapping = aes(x = price, y = carat)) + 
+  geom_boxplot(mapping = aes(group = cut_width(price, 1000))) +
+  coord_flip()
 
 #3. How does the price distribution of very large diamonds compare to small diamonds. Is it as you expect, or does it surprise you?
 
 #4. Combine two of the techniques you’ve learned to visualise the combined distribution of cut, carat, and price.
+# use facet_grid. facet by cut
+ggplot(data = smaller, mapping = aes(x = price, y = carat)) + 
+  geom_boxplot(mapping = aes(group = cut_width(price, 1000))) +
+  facet_grid(cut~.) + 
+  coord_flip()
+# use facet_grid. facet by carrat
+ggplot(data = smaller, mapping = aes(x = price, y = cut)) + 
+  geom_boxplot(mapping = aes(group = cut_width(price, 1000))) +
+  facet_grid(carat~.) + 
+  coord_flip()
 
 #5. Two dimensional plots reveal outliers that are not visible in one dimensional plots. For example, some points in the plot below have an unusual combination of x and y values, which makes the points outliers even though their x and y values appear normal when examined separately.
 

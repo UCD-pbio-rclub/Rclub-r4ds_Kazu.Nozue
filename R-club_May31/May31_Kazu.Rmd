@@ -1,0 +1,196 @@
+---
+title: "Kazu_May31"
+author: "Kazu"
+date: "5/31/2017"
+output: 
+  html_document: 
+    keep_md: yes
+---
+
+# Prerequisites
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(tidyverse)
+library(nycflights13)
+```
+# 7.6. Patterns and models
+```{r}
+ggplot(data = faithful) + 
+  geom_point(mapping = aes(x = eruptions, y = waiting))
+#
+library(modelr)
+
+mod <- lm(log(price) ~ log(carat), data = diamonds)
+
+diamonds2 <- diamonds %>% 
+  add_residuals(mod) %>% 
+  mutate(resid = exp(resid))
+# 
+?add_residuals
+
+ggplot(data = diamonds2) + 
+  geom_point(mapping = aes(x = carat, y = resid))
+
+# Once you’ve removed the strong relationship between carat and price, you can see what you expect in the relationship between cut and price: relative to their size, better quality diamonds are more expensive.
+ggplot(data = diamonds2) + 
+  geom_boxplot(mapping = aes(x = cut, y = resid))
+```
+# 7.7 ggplot2 calls
+```{r}
+ggplot(data = faithful, mapping = aes(x = eruptions)) + 
+  geom_freqpoly(binwidth = 0.25)
+# concise version
+diamonds %>% 
+  count(cut, clarity) %>% 
+  ggplot(aes(clarity, cut, fill = n)) + 
+    geom_tile()
+```
+# 8 Workflow: projects
+# 8.1 What is real?
+# 8.2 Where does your analysis live?
+
+```{r}
+## I do not recommend it, but you can also set the working directory from within R:
+# setwd("/path/to/my/CoolProject")
+# 8.3 Paths and directories
+# 8.4 RStudio projects
+```
+# 10 Tibbles
+# 10.1 Introduction
+# 10.1.1 Prerequisites
+# 10.2 Creating tibbles
+```{r}
+as_tibble(iris)
+tb <- tibble(
+  `:)` = "smile", 
+  ` ` = "space",
+  `2000` = "number"
+)
+tb
+# tribble
+tribble(
+  ~x, ~y, ~z,
+  #--|--|----
+  "a", 2, 3.6,
+  "b", 1, 8.5
+)
+#> # A tibble: 2 × 3
+#>       x     y     z
+#>   <chr> <dbl> <dbl>
+#> 1     a     2   3.6
+#> 2     b     1   8.5
+```
+# 10.3 Tibbles vs. data.frame
+## 10.3.1 Printing
+```{r}
+tibble(
+  a = lubridate::now() + runif(1e3) * 86400,
+  b = lubridate::today() + runif(1e3) * 30,
+  c = 1:1e3,
+  d = runif(1e3),
+  e = sample(letters, 1e3, replace = TRUE)
+)
+# Tibbles are designed so that you don’t accidentally overwhelm your console when you print large data frames. But sometimes you need more output than the default display. There are a few options that can help.
+nycflights13::flights %>% 
+  print(n = 10, width = Inf)
+
+nycflights13::flights %>% 
+  View()
+```
+## 10.3.2 Subsetting
+```{r}
+df <- tibble(
+  x = runif(5),
+  y = rnorm(5)
+)
+# Extract by name
+df$x
+#> [1] 0.434 0.395 0.548 0.762 0.254
+df[["x"]]
+#> [1] 0.434 0.395 0.548 0.762 0.254
+# Extract by position
+df[[1]]
+
+## To use these in a pipe, you’ll need to use the special placeholder .:
+df %>% .$x
+#> [1] 0.434 0.395 0.548 0.762 0.254
+df %>% .[["x"]]
+```
+# 10.4 Interacting with older code
+```{r}
+#Some older functions don’t work with tibbles. If you encounter one of these functions, use as.data.frame() to turn a tibble back to a data.frame:
+class(as.data.frame(tb))
+#> [1] "data.frame"
+```
+# 10.5 Exercises
+```{r}
+#1. How can you tell if an object is a tibble? (Hint: try printing mtcars, which is a regular data frame).
+class(mtcars)
+tib.mtcars<-as.tibble(mtcars)
+tib.mtcars2<-as_tibble(mtcars)
+class(tib.mtcars)
+class(tib.mtcars2) # same
+tib.mtcars
+#2. Compare and contrast the following operations on a data.frame and equivalent tibble. What is different? Why might the default data frame behaviours cause you frustration?
+
+df <- data.frame(abc = 1, xyz = "a")
+df$x #  
+df[, "xyz"]
+df[, c("abc", "xyz")]
+## tibble version
+tb.10.5<-tibble(abc = 1, xyz = "a")
+tb.10.5$x
+# NULL
+# Warning message:
+# Unknown or uninitialised column: 'x'. 
+tb.10.5[,"xyz"]
+select(tb.10.5, xyz)
+tb.10.5[,c("abc","xyz")] # same as data.frame
+tb.10.5[["abc","xyz"]];tb.10.5[[c("abc","xyz")]] # does not work. "Error in .subset2(x, i, exact = exact) : subscript out of bounds"
+select(tb.10.5, abc,xyz)
+#3. If you have the name of a variable stored in an object, e.g. var <- "mpg", how can you extract the reference variable from a tibble?
+var<-"mpg"
+var.tb<-tibble(var2=var)
+var.tb
+var.tb[["var2"]]
+select(var.tb, var2) # is this what is wanted?
+#4. Practice referring to non-syntactic names in the following data frame by:
+annoying <- tibble(
+  `1` = 1:10,
+  `2` = `1` * 2 + rnorm(length(`1`))
+)
+## Extracting the variable called 1.
+annoying %>% select(1)
+# or
+annoying[["1"]]
+## Plotting a scatterplot of 1 vs 2.
+annoying %>% ggplot(aes(x=`1`,y=`2`)) + geom_point()
+## Creating a new column called 3 which is 2 divided by 1.
+annoying2<-mutate(annoying,`3`=`2`/`1`)
+## Renaming the columns to one, two and three.
+colnames(annoying2)<-c("one","two","three")
+annoying2
+## or
+rename
+
+#5. What does tibble::enframe() do? When might you use it?
+?enframe
+enframe(1:3)
+enframe(c(a = 5, b = 7))
+# Usefule to convert vetor into tibble with its names
+gene<-c(0.1,0.5)
+names(gene)<-c("AT1g0001","AT1g0002")
+gene
+enframe(gene) 
+
+#6. What option controls how many additional column names are printed at the footer of a tibble?
+?tibble::tibble
+?print
+flights
+print(flights,n = 10, width = Inf)
+?print.tbl_df 
+print(flights)
+print(flights, n_extra = 2) # does not work why?
+
+```
