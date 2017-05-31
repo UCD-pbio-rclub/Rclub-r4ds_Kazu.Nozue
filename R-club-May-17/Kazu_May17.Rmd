@@ -307,13 +307,37 @@ flights %>% group_by(year,month,day,origin) %>%
   mutate(lag_eff = lag(dep_delay,order_by=dep_time)) %>% select(year:day,dep_time,dep_delay,lag_eff) %>% filter(dep_time<500)  %>% arrange(year, month, day, !desc(dep_time)) 
 # how to see only between 10 pm an 5 am? filter(between(dep_time,2200,500)) does not work
 library(lubridate)
-not_cancelled %>% mutate(dep_date_time=ymd_hm(paste(year,month,day," ",dep_time %/% 100,dep_time %% 100))) %>% group_by(origin,dep_date_time) %>% mutate(lag_eff = lag(dep_delay,order_by=dep_time)) %>% arrange(year, month, day, dep_time,dep_date_time,dep_delay,lag_eff)
+not_cancelled.ymd<-not_cancelled %>% mutate(dep_date_time=ymd_hm(paste(year,month,day," ",dep_time %/% 100,dep_time %% 100)))
+#not_cancelled.ymd %>% group_by(origin) %>% mutate(lag_eff = lag(dep_delay,order_by=dep_time),lag_eff_ymd=lag(dep_delay,order_by=dep_date_time)) %>% arrange(year, month, day, dep_time,dep_date_time,dep_delay,lag_eff,lag_eff_ymd) %>%   ggplot(aes(x=dep_time,y=lag_eff_ymd)) + geom_point() + coord_polar()
+print(not_cancelled.ymd,width=Inf)
+#
+not_cancelled.ymd2<- not_cancelled.ymd %>% mutate(sched_dep_date_time=ymd_hm(paste(year,month,day," ",sched_dep_time %/% 100,sched_dep_time %% 100)),dep_delay_ymd_calc=dep_date_time - sched_dep_date_time) 
+ggplot(not_cancelled.ymd2,aes(x=dep_delay_ymd_calc,y=dep_delay)) + geom_point() 
+not_cancelled.ymd2 %>% filter(dep_delay_ymd_calc< -80000) %>% print(width=Inf)
+# needs to correct actual dept time with year, month, and day
+#not_cancelled.ymd3<-
+not_cancelled.ymd2 %>% mutate(dep_date_time2=sched_dep_date_time + minute(dep_delay) ) # errors
+# start over
+not_cancelled.ymd4<-not_cancelled %>% group_by(origin) %>% mutate(dep_date_time=ymd_hm(paste(year,month,day," ",dep_time %/% 100,dep_time %% 100)),sched_dep_date_time=ymd_hm(paste(year,month,day," ",sched_dep_time %/% 100,sched_dep_time %% 100)),dep_date_time2=sched_dep_date_time + dminutes(dep_delay)) # dminutes() calculate duration
+print(not_cancelled.ymd4,width=Inf)
+ggplot(not_cancelled.ymd4,aes(x=dep_date_time2,y=dep_delay)) + geom_point() 
+not_cancelled.ymd5 <- not_cancelled.ymd4 %>% mutate(dep_date_time2.hrs=as.numeric(hour(dep_date_time2)+minute(dep_date_time2)/60))
+ggplot(not_cancelled.ymd5,aes(x=dep_date_time2.hrs,y=dep_delay,color=air_time)) + geom_point(alpha=0.5) +facet_grid(.~origin)
+summary(not_cancelled.ymd5)
+
+ggplot(not_cancelled.ymd5,aes(x=dep_date_time2.hrs,y=log(dep_delay),color=air_time)) + geom_boxplot(alpha=0.5,aes(group=cut_width(dep_date_time2.hrs,width=2))) +facet_grid(.~origin)
+# lag
+not_cancelled.ymd6 <- not_cancelled.ymd5 %>% group_by(origin) %>% mutate(lag_dep_delay.ymd=lag(dep_delay,order_by=dep_date_time2))
+ggplot(not_cancelled.ymd6,aes(x=lag_dep_delay.ymd,y=dep_delay,color=air_time)) + geom_point(alpha=0.5) +facet_grid(.~origin)
+
+
+
+# circos plot
+source("https://bioconductor.org/biocLite.R")
+biocLite("OmicCircos")
+
 # %>% filter(between(dep_date_time,2200,500)) # does not work (5/20/2017)
 ##### under construction ########
-
-
-
-
 
 
 # how to show problem of not having combined y/m/d/time info for calculating interval or lag?
@@ -323,7 +347,7 @@ flights %>% group_by(year,month,day) %>%
 # ver2
 flights %>% group_by(year,month,day) %>%
   filter(!is.na(dep_delay)) %>% 
-  mutate(lag_eff = lag(dep_delay,order_by=dep_time)) %>% select(year:day,dep_time,dep_delay,lag_eff) %>%  arrange(year, month, day, desc(dep_time)) %>% ggplot(aes(x=dep_time,y=lag_eff)) + geom_point()
+  mutate(lag_eff = lag(dep_delay,order_by=dep_time)) %>% select(year:day,dep_time,dep_delay,lag_eff) %>%  arrange(year, month, day, desc(dep_time)) %>% ggplot(aes(x=dep_time,y=lag_eff)) + geom_point() + coord_polar()
 
 
 ### learning lag and lead (?lag)
