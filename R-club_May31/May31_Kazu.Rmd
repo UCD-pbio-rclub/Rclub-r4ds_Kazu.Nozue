@@ -95,8 +95,8 @@ tibble(
 nycflights13::flights %>% 
   print(n = 10, width = Inf)
 
-nycflights13::flights %>% 
-  View()
+#nycflights13::flights %>% 
+#  View()
 ```
 ## 10.3.2 Subsetting
 ```{r}
@@ -137,17 +137,17 @@ tib.mtcars
 df <- data.frame(abc = 1, xyz = "a")
 df$x #  
 df[, "xyz"]
-df[, c("abc", "xyz")]
+#df[, c("abc", "xyz")]
 ## tibble version
 tb.10.5<-tibble(abc = 1, xyz = "a")
-tb.10.5$x
+#tb.10.5$x
 # NULL
 # Warning message:
 # Unknown or uninitialised column: 'x'. 
 tb.10.5[,"xyz"]
 select(tb.10.5, xyz)
 tb.10.5[,c("abc","xyz")] # same as data.frame
-tb.10.5[["abc","xyz"]];tb.10.5[[c("abc","xyz")]] # does not work. "Error in .subset2(x, i, exact = exact) : subscript out of bounds"
+#tb.10.5[["abc","xyz"]];tb.10.5[[c("abc","xyz")]] # does not work. "Error in .subset2(x, i, exact = exact) : subscript out of bounds"
 select(tb.10.5, abc,xyz)
 #3. If you have the name of a variable stored in an object, e.g. var <- "mpg", how can you extract the reference variable from a tibble?
 var<-"mpg"
