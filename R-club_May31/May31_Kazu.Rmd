@@ -137,7 +137,7 @@ tib.mtcars
 df <- data.frame(abc = 1, xyz = "a")
 df$x #  
 df[, "xyz"]
-#df[, c("abc", "xyz")]
+df[, c("abc", "xyz")]
 ## tibble version
 tb.10.5<-tibble(abc = 1, xyz = "a")
 #tb.10.5$x
@@ -149,17 +149,32 @@ select(tb.10.5, xyz)
 tb.10.5[,c("abc","xyz")] # same as data.frame
 #tb.10.5[["abc","xyz"]];tb.10.5[[c("abc","xyz")]] # does not work. "Error in .subset2(x, i, exact = exact) : subscript out of bounds"
 select(tb.10.5, abc,xyz)
+# if df is converted into tibble by as.tibble, the "xyz" column become a factor
+as.tibble(df)
+
 #3. If you have the name of a variable stored in an object, e.g. var <- "mpg", how can you extract the reference variable from a tibble?
 var<-"mpg"
 var.tb<-tibble(var2=var)
 var.tb
 var.tb[["var2"]]
-select(var.tb, var2) # is this what is wanted?
+
+# Julin's solution
+var <- "hwy"
+data(mpg)
+mpg
+get(var,mpg) # base function
+select(mpg,matches(var))
+subset(mpg,select=var)
+mpg[var]
+mpg[[var]]
+mpg[,var]
+select(mpg,one_of(var)) # exact match
+
 #4. Practice referring to non-syntactic names in the following data frame by:
 annoying <- tibble(
   `1` = 1:10,
   `2` = `1` * 2 + rnorm(length(`1`))
-)
+) # backtick 
 ## Extracting the variable called 1.
 annoying %>% select(1)
 # or
