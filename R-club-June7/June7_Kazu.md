@@ -446,7 +446,14 @@ parse_date("1 janvier 2015", "%d %B %Y", locale = locale("fr"))
 ?locale() # tz?
 
 #2. What happens if you try and set decimal_mark and grouping_mark to the same character? What happens to the default value of grouping_mark when you set decimal_mark to “,”? What happens to the default value of decimal_mark when you set the grouping_mark to “.”?
-#parse_double("1,23", locale = locale(decimal_mark = ",",grouping_mark = ","))
+parse_double("1,23", locale = locale(decimal_mark = ",",grouping_mark = ","))
+```
+
+```
+## Error: `decimal_mark` and `grouping_mark` must be different
+```
+
+```r
 # Error: `decimal_mark` and `grouping_mark` must be different
 parse_double("1,23", locale = locale(decimal_mark = ","))
 ```
@@ -799,6 +806,7 @@ OlsonNames() # for UTC see https://en.wikipedia.org/wiki/Coordinated_Universal_T
 ```
 
 ```r
+time1.UTC<-parse_datetime("20150125 0215", locale = locale(date_format="%AD",time_format="%AT")) # does work
 time1.jp<-parse_datetime("20150125 0215", locale = locale(date_format="%AD",time_format="%AT",tz="Japan")) # does work
 time1.UTC - time1.jp # Time difference of 9 hours
 ```

@@ -335,8 +335,9 @@ parse_time(&quot;01:10 am&quot;)</code></pre>
 ?locale() # tz?
 
 #2. What happens if you try and set decimal_mark and grouping_mark to the same character? What happens to the default value of grouping_mark when you set decimal_mark to “,”? What happens to the default value of decimal_mark when you set the grouping_mark to “.”?
-#parse_double(&quot;1,23&quot;, locale = locale(decimal_mark = &quot;,&quot;,grouping_mark = &quot;,&quot;))
-# Error: `decimal_mark` and `grouping_mark` must be different
+parse_double(&quot;1,23&quot;, locale = locale(decimal_mark = &quot;,&quot;,grouping_mark = &quot;,&quot;))</code></pre>
+<pre><code>## Error: `decimal_mark` and `grouping_mark` must be different</code></pre>
+<pre class="r"><code># Error: `decimal_mark` and `grouping_mark` must be different
 parse_double(&quot;1,23&quot;, locale = locale(decimal_mark = &quot;,&quot;))</code></pre>
 <pre><code>## [1] 1.23</code></pre>
 <pre class="r"><code>#parse_double(&quot;1,23&quot;, locale = locale(grouping_mark = &quot;,&quot;))</code></pre>
@@ -659,7 +660,8 @@ OlsonNames() # for UTC see https://en.wikipedia.org/wiki/Coordinated_Universal_T
 ## [585] &quot;UTC&quot;                              &quot;VERSION&quot;                         
 ## [587] &quot;W-SU&quot;                             &quot;WET&quot;                             
 ## [589] &quot;Zulu&quot;</code></pre>
-<pre class="r"><code>time1.jp&lt;-parse_datetime(&quot;20150125 0215&quot;, locale = locale(date_format=&quot;%AD&quot;,time_format=&quot;%AT&quot;,tz=&quot;Japan&quot;)) # does work
+<pre class="r"><code>time1.UTC&lt;-parse_datetime(&quot;20150125 0215&quot;, locale = locale(date_format=&quot;%AD&quot;,time_format=&quot;%AT&quot;)) # does work
+time1.jp&lt;-parse_datetime(&quot;20150125 0215&quot;, locale = locale(date_format=&quot;%AD&quot;,time_format=&quot;%AT&quot;,tz=&quot;Japan&quot;)) # does work
 time1.UTC - time1.jp # Time difference of 9 hours</code></pre>
 <pre><code>## Time difference of 9 hours</code></pre>
 <pre class="r"><code>#5. What’s the difference between read_csv() and read_csv2()?
