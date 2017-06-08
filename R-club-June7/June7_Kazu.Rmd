@@ -259,3 +259,9 @@ read_feather("challenge.feather")
 ```{r}
 
 ```
+# note from Kazu
+```{r}
+# import data directry from Google Sheet
+## see https://github.com/jennybc/googlesheets
+
+```
