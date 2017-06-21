@@ -669,7 +669,7 @@ who %>%
 #   making table
 who %>% 
   select(country, iso2,iso3)  %>%
-  spread(country)
+  spread(country) # tidy version of ftable needed.
 ```
 
 ```
@@ -678,4 +678,19 @@ who %>%
 
 ```r
 #4. For each country, year, and sex compute the total number of cases of TB. Make an informative visualisation of the data.
+who.summary<-who %>%
+  gather(code, value, new_sp_m014:newrel_f65, na.rm = TRUE) %>% 
+  mutate(code = stringr::str_replace(code, "newrel", "new_rel")) %>%
+  separate(code, c("new", "var", "sexage")) %>% 
+  select(-new, -iso2, -iso3) %>% 
+  separate(sexage, c("sex", "age"), sep = 1)
+
+who.summary %>% ggplot(aes(x=year,y=value)) + geom_bar(mapping=aes(fill=age),stat="identity")
+```
+
+![](June21_Kazu_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+
+```r
+p<-who.summary %>% ggplot(aes(x=year,y=value)) + geom_bar(mapping=aes(fill=age),stat="identity") + facet_grid(country~var,scales="free_y")
+ggsave(file="who.summary.png",width=8,height=100,limitsize=FALSE)
 ```
