@@ -124,6 +124,20 @@ df %>% complete(group, nesting(item_id, item_name), fill = list(value1 = 0))
 ```
 
 ```r
+df %>% complete(group, nesting(item_id, item_name), fill = list(value1 = 0,value2 = "no data")) # you can control what will be filled in each column.
+```
+
+```
+## # A tibble: 4 × 5
+##   group item_id item_name value1  value2
+##   <dbl>   <dbl>     <chr>  <dbl>   <chr>
+## 1     1       1         a      1       4
+## 2     1       2         b      3       6
+## 3     2       1         a      0 no data
+## 4     2       2         b      2       5
+```
+
+```r
 # how to use spread?
 # 
 df %>% spread(group,value1)
@@ -669,7 +683,7 @@ who %>%
 #   making table
 who %>% 
   select(country, iso2,iso3)  %>%
-  spread(country)
+  spread(country) # tidy version of ftable needed.
 ```
 
 ```
@@ -678,4 +692,19 @@ who %>%
 
 ```r
 #4. For each country, year, and sex compute the total number of cases of TB. Make an informative visualisation of the data.
+who.summary<-who %>%
+  gather(code, value, new_sp_m014:newrel_f65, na.rm = TRUE) %>% 
+  mutate(code = stringr::str_replace(code, "newrel", "new_rel")) %>%
+  separate(code, c("new", "var", "sexage")) %>% 
+  select(-new, -iso2, -iso3) %>% 
+  separate(sexage, c("sex", "age"), sep = 1)
+
+who.summary %>% ggplot(aes(x=year,y=value)) + geom_bar(mapping=aes(fill=age),stat="identity")
+```
+
+![](June21_Kazu_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+
+```r
+p<-who.summary %>% ggplot(aes(x=year,y=value)) + geom_bar(mapping=aes(fill=sex),stat="identity") + facet_grid(country~var,scales="free_y") + theme(strip.text.y = element_text(angle=0,size=3))
+ggsave(file="who.summary.png",width=8,height=100,limitsize=FALSE)
 ```
