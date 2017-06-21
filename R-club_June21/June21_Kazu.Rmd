@@ -1,0 +1,164 @@
+---
+title: "June21_Kazu"
+author: "Kazu"
+date: "6/20/2017"
+output: 
+  html_document: 
+    keep_md: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+# 12.5 Missing values
+```{r}
+stocks <- tibble(
+  year   = c(2015, 2015, 2015, 2015, 2016, 2016, 2016),
+  qtr    = c(   1,    2,    3,    4,    2,    3,    4),
+  return = c(1.88, 0.59, 0.35,   NA, 0.92, 0.17, 2.66)
+)
+stocks %>% 
+  spread(year, return)
+stocks %>% 
+  spread(year, return) %>% 
+  gather(year, return, `2015`:`2016`, na.rm = TRUE)
+
+stocks %>% 
+  complete(year, qtr)
+treatment <- tribble(
+  ~ person,           ~ treatment, ~response,
+  "Derrick Whitmore", 1,           7,
+  NA,                 2,           10,
+  NA,                 3,           9,
+  "Katherine Burke",  1,           4
+)
+treatment %>% 
+  fill(person)
+
+```
+# 12.5.1 Exercises
+```{r}
+#1. Compare and contrast the fill arguments to spread() and complete().
+## example from spread()
+df <- data_frame(
+  group = c(1:2, 1),
+  item_id = c(1:2, 2),
+  item_name = c("a", "b", "b"),
+  value1 = 1:3,
+  value2 = 4:6
+)
+df %>% complete(group, nesting(item_id, item_name))
+
+# You can also choose to fill in missing values
+df %>% complete(group, nesting(item_id, item_name), fill = list(value1 = 0))
+# how to use spread?
+# 
+df %>% spread(group,value1)
+df %>% spread(group,value2)
+
+
+#2. What does the direction argument to fill() do?
+?fill
+df <- data.frame(Month = 1:12, Year = c(2000, rep(NA, 11)))
+df <- data.frame(Month = 1:12, Year = c(rep(NA, 5),2000,rep(NA,6)))
+df
+df %>% fill(Year)
+df %>% fill(Year,.direction="up") # Direction in which to fill missing values. Currently either "down" (the default) or "up". ????
+df %>% fill(Year,.direction="down")
+df %>% fill(Year,.direction=c("up","down")) # Error in match.arg(.direction) : 'arg' must be of length 1. 
+# unable to fill all NA by fill()
+df %>% complete(Month,Year) 
+```
+# 12.6 Case Study
+```{r}
+who
+# The best place to start is almost always to gather together the columns that are not variables. Let’s have a look at what we’ve got:
+# It looks like country, iso2, and iso3 are three variables that redundantly specify the country.
+# year is clearly also a variable.
+# We don’t know what all the other columns are yet, but given the structure in the variable names (e.g. new_sp_m014, new_ep_m014, new_ep_f014) these are likely to be values, not variables.
+who1 <- who %>% 
+  gather(new_sp_m014:newrel_f65, key = "key", value = "cases", na.rm = TRUE)
+who1
+# We can get some hint of the structure of the values in the new key column by counting them:
+who1 %>% 
+  count(key)
+# You might be able to parse this out by yourself with a little thought and some experimentation, but luckily we have the data dictionary handy. It tells us:
+## The first three letters of each column denote whether the column contains new or old cases of TB. In this dataset, each column contains new cases.
+##  The next two letters describe the type of TB:
+###    rel stands for cases of relapse
+###    ep stands for cases of extrapulmonary TB
+###    sn stands for cases of pulmonary TB that could not be diagnosed by a pulmonary smear (smear negative)
+###    sp stands for cases of pulmonary TB that could be diagnosed be a pulmonary smear (smear positive)
+### The sixth letter gives the sex of TB patients. The dataset groups cases by males (m) and females (f).
+###  The remaining numbers gives the age group. The dataset groups cases into seven age groups:
+### 014 = 0 – 14 years old
+### 1524 = 15 – 24 years old
+### 2534 = 25 – 34 years old
+### 3544 = 35 – 44 years old
+### 4554 = 45 – 54 years old
+### 5564 = 55 – 64 years old
+### 65 = 65 or older
+
+# KN: how ot know those info?
+summary(who1) # this is not appropriate
+who1 %>% count(key) %>% separate(key,c("one","two","three"),sep="_") # Warning message:Too few values at 14 locations: 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56 
+who1 %>% count(key) %>% separate(key,c("one","two","three"),sep="_",fill="right") -> who1.key
+count(who1.key, one)
+count(who1.key, two)
+count(who1.key, three)
+### the end of my own trial
+
+# We need to make a minor fix to the format of the column names: unfortunately the names are slightly inconsistent because instead of new_rel we have newrel (it’s hard to spot this here but if you don’t fix it we’ll get errors in subsequent steps). You’ll learn about str_replace() in strings, but the basic idea is pretty simple: replace the characters “newrel” with “new_rel”. This makes all variable names consistent.
+
+who2 <- who1 %>% 
+  mutate(key = stringr::str_replace(key, "newrel", "new_rel"))
+who2
+
+# We can separate the values in each code with two passes of separate(). The first pass will split the codes at each underscore.
+
+who3 <- who2 %>% 
+  separate(key, c("new", "type", "sexage"), sep = "_")
+who3
+who4 <- who3 %>% 
+  select(-new, -iso2, -iso3)
+#Next we’ll separate sexage into sex and age by splitting after the first character:
+
+who5 <- who4 %>% 
+  separate(sexage, c("sex", "age"), sep = 1)
+who5
+# The who dataset is now tidy!
+# I’ve shown you the code a piece at a time, assigning each interim result to a new variable. This typically isn’t how you’d work interactively. Instead, you’d gradually build up a complex pipe:
+
+who %>%
+  gather(code, value, new_sp_m014:newrel_f65, na.rm = TRUE) %>% 
+  mutate(code = stringr::str_replace(code, "newrel", "new_rel")) %>%
+  separate(code, c("new", "var", "sexage")) %>% 
+  select(-new, -iso2, -iso3) %>% 
+  separate(sexage, c("sex", "age"), sep = 1)
+```
+# 12.6.1 Exercises
+```{r}
+#1. In this case study I set na.rm = TRUE just to make it easier to check that we had the correct values. Is this reasonable? Think about how missing values are represented in this dataset. Are there implicit missing values? What’s the difference between an NA and zero?
+
+#2. What happens if you neglect the mutate() step? (mutate(key = stringr::str_replace(key, "newrel", "new_rel")))
+who %>%
+  gather(code, value, new_sp_m014:newrel_f65, na.rm = TRUE) %>% 
+  #mutate(code = stringr::str_replace(code, "newrel", "new_rel")) %>%
+  #separate(code, c("new", "var", "sexage")) %>% 
+  separate(code, c("new", "var", "sexage"),fill="right") %>% # with "newrel" row has only two 
+  select(-new, -iso2, -iso3) %>% 
+  separate(sexage, c("sex", "age"), sep = 1)
+# Warning message:Too few values at 2580 locations: 73467, 73468, 73469, 73470, 73471, 73472, 73473, 73474, 73475, 73476, 73477, 73478, 73479, 73480, 73481, 73482, 73483, 73484, 73485, 73486, ... 
+
+
+#3. I claimed that iso2 and iso3 were redundant with country. Confirm this claim.
+who %>% 
+  unite(country,iso2,iso3,col="combined",remove=FALSE) %>% select(combined) %>% count(combined) # this is not what I want
+#   making table
+who %>% 
+  select(country, iso2,iso3)  %>%
+  spread(country)
+#4. For each country, year, and sex compute the total number of cases of TB. Make an informative visualisation of the data.
+
+```
