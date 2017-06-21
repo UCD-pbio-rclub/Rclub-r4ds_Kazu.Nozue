@@ -38,7 +38,7 @@ treatment %>%
 
 ```
 # 12.5.1 Exercises
-```{r}
+```{r error=TRUE}
 #1. Compare and contrast the fill arguments to spread() and complete().
 ## example from spread()
 df <- data_frame(
@@ -138,7 +138,7 @@ who %>%
   separate(sexage, c("sex", "age"), sep = 1)
 ```
 # 12.6.1 Exercises
-```{r}
+```{r error=TRUE}
 #1. In this case study I set na.rm = TRUE just to make it easier to check that we had the correct values. Is this reasonable? Think about how missing values are represented in this dataset. Are there implicit missing values? What’s the difference between an NA and zero?
 
 #2. What happens if you neglect the mutate() step? (mutate(key = stringr::str_replace(key, "newrel", "new_rel")))
@@ -158,7 +158,18 @@ who %>%
 #   making table
 who %>% 
   select(country, iso2,iso3)  %>%
-  spread(country)
+  spread(country) # tidy version of ftable needed.
+
 #4. For each country, year, and sex compute the total number of cases of TB. Make an informative visualisation of the data.
+who.summary<-who %>%
+  gather(code, value, new_sp_m014:newrel_f65, na.rm = TRUE) %>% 
+  mutate(code = stringr::str_replace(code, "newrel", "new_rel")) %>%
+  separate(code, c("new", "var", "sexage")) %>% 
+  select(-new, -iso2, -iso3) %>% 
+  separate(sexage, c("sex", "age"), sep = 1)
+
+who.summary %>% ggplot(aes(x=year,y=value)) + geom_bar(mapping=aes(fill=age),stat="identity")
+p<-who.summary %>% ggplot(aes(x=year,y=value)) + geom_bar(mapping=aes(fill=age),stat="identity") + facet_grid(country~var,scales="free_y")
+ggsave(file="who.summary.png",width=8,height=100,limitsize=FALSE)
 
 ```
