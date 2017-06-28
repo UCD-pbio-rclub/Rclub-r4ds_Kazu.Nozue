@@ -1,0 +1,82 @@
+---
+title: "June21_Kazu"
+author: "Kazu"
+date: "6/28/2017"
+output: 
+  html_document: 
+    keep_md: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+# 13 Relational data
+```{r}
+library(nycflights13)
+```
+# 13.2 nycflights13
+# 13.2.1 Exercises
+```{r}
+#1. Imagine you wanted to draw (approximately) the route each plane flies from its origin to its destination. What variables would you need? What tables would you need to combine?
+
+#2. I forgot to draw the relationship between weather and airports. What is the relationship and how should it appear in the diagram?
+weather
+#3. weather only contains information for the origin (NYC) airports. If it contained weather records for all airports in the USA, what additional relation would it define with flights?
+
+```
+#13.3 Keys
+## The variables used to connect each pair of tables are called keys
+```{r}
+planes %>% 
+  count(tailnum) %>% 
+  filter(n > 1)
+# 
+weather %>% 
+  count(year, month, day, hour, origin) %>% 
+  filter(n > 1)
+#
+flights %>% 
+  count(year, month, day, flight) %>% 
+  filter(n > 1)
+#
+flights %>% 
+  count(year, month, day, tailnum) %>% 
+  filter(n > 1)
+# When starting to work with this data, I had naively assumed that each flight number would be only used once per day: that would make it much easier to communicate problems with a specific flight. Unfortunately that is not the case! If a table lacks a primary key, it’s sometimes useful to add one with mutate() and row_number(). That makes it easier to match observations if you’ve done some filtering and want to check back in with the original data. This is called a surrogate key.
+?row_number()
+# A primary key and the corresponding foreign key in another table form a relation. Relations are typically one-to-many. For example, each flight has one plane, but each plane has many flights. In other data, you’ll occasionally see a 1-to-1 relationship. You can think of this as a special case of 1-to-many. You can model many-to-many relations with a many-to-1 relation plus a 1-to-many relation. For example, in this data there’s a many-to-many relationship between airlines and airports: each airline flies to many airports; each airport hosts many airlines.
+
+
+```
+#13.3.1 Exercises
+```{r}
+#1. Add a surrogate key to flights.
+mutate(flights,row_num=row_number()) %>% select(row_num)
+
+#2. Identify the keys in the following datasets
+# Lahman::Batting
+library(Lahman)
+Lahman::Batting %>% colnames() -> Batteing.colname
+Lahman::Master %>% colnames() -> Master.colname
+Lahman::Pitching %>% colnames() -> Pitching.colname
+Lahman::Fielding %>% colnames() -> Fielding.colname
+all.colnames <- unique(c(Batteing.colname,Master.colname,Pitching.colname,Fielding.colname))
+Lahman.data <- tibble(
+  Battering=all.colnames %in%  Batteing.colname,
+  Master=all.colnames %in%  Master.colname,
+  Pitching=all.colnames %in%  Pitching.colname,
+  Fielding=all.colnames %in%  Fielding.colname
+)
+summary(Lahman.data) # number of TRUE is numbe of keys in each data
+
+## babynames::babynames
+
+## nasaweather::atmos
+## fueleconomy::vehicles
+## ggplot2::diamonds
+## (You might need to install some packages and read some documentation.)
+
+#3. Draw a diagram illustrating the connections between the Batting, Master, and Salaries tables in the Lahman package. Draw another diagram that shows the relationship between Master, Managers, AwardsManagers.
+## How would you characterise the relationship between the Batting, Pitching, and Fielding tables?
+```
