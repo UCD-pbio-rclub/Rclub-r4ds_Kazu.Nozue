@@ -705,6 +705,10 @@ who.summary %>% ggplot(aes(x=year,y=value)) + geom_bar(mapping=aes(fill=age),sta
 ![](June21_Kazu_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
 
 ```r
+<<<<<<< HEAD
 p<-who.summary %>% ggplot(aes(x=year,y=value)) + geom_bar(mapping=aes(fill=sex),stat="identity") + facet_grid(country~var,scales="free_y") + theme(strip.text.y = element_text(angle=0,size=3))
+=======
+p<-who.summary %>% ggplot(aes(x=year,y=value)) + geom_bar(mapping=aes(fill=age),stat="identity") + facet_grid(country~var,scales="free_y")
+>>>>>>> fdf1625b2be59f5ebcb9fd4c305ab39f1f78d7b4
 ggsave(file="who.summary.png",width=8,height=100,limitsize=FALSE)
 ```
