@@ -220,14 +220,25 @@ test1<-c("apple","banana","pear")
 str_view(test1,"^[aeiou]")
 
 ## 2. That only contain consonants. (Hint: thinking about matching “not”-vowels.)
-test2<-c(test1, "")
-str_view(test2,"^[^aeiou]+$")
+test2<-c(test1, "myths") # find words that only contain consonants (http://www.wordfind.com/scrabble-consonant-words/).
+str_view(test2,"^[^aeiou]+$") # OK.
 
 ## 3. End with ed, but not with eed.
+test3<-c("weed","decided")
+str_view(test3,"ed$") # eed and ed 
+# str_view(test3,(ed$)&(eed$)) # does not work
+# str_view(str_match(test3,"ed$"),"eed",match=FALSE) #  does not work
 
 ## 4. End with ing or ise.
-
+str_view(c("doing","done","wise"),"i(ng|se)")
 #2. Empirically verify the rule “i before e except after c”.
+
+
+chapter12<-"12 Tidy data12.1 IntroductionHappy families are all alike; every unhappy family is unhappy in its own way. –– Leo TolstoyTidy datasets are all alike, but every messy dataset is messy in its own way. –– Hadley WickhamIn this chapter, you will learn a consistent way to organise your data in R, an organisation called tidy data. Getting your data into this format requires some upfront work, but that work pays off in the long term. Once you have tidy data and the tidy tools provided by packages in the tidyverse, you will spend much less time munging data from one representation to another, allowing you to spend more time on the analytic questions at hand.This chapter will give you a practical introduction to tidy data and the accompanying tools in the tidyr package. If you’d like to learn more about the underlying theory, you might enjoy the Tidy Data paper published in the Journal of Statistical Software, http:www.jstatsoft.orgv59i10paper.12.1.1 PrerequisitesIn this chapter we’ll focus on tidyr, a package that provides a bunch of tools to help tidy up your messy datasets. tidyr is a member of the core tidyverse.librarytidyverse12.2 Tidy dataYou can represent the same underlying data in multiple ways. The example below shows the same data organised in four different ways. Each dataset shows the same values of four variables country, year, population, and cases, but each dataset organises the values in a different wayThese are all representations of the same underlying data, but they are not equally easy to use. One dataset, the tidy dataset, will be much easier to work with inside the tidyverse.There are three interrelated rules which make a dataset tidy:Each variable must have its own column.Each observation must have its own row.Each value must have its own cell.Figure 12.1 shows the rules visually. Following three rules makes a dataset tidy: variables are in columns, observations are in rows, and values are in cells.Figure 12.1: Following three rules makes a dataset tidy: variables are in columns, observations are in rows, and values are in cells.These three rules are interrelated because it’s impossible to only satisfy two of the three. That interrelationship leads to an even simpler set of practical instructions:Put each dataset in a tibble.Put each variable in a column.In this example, only table1 is tidy. It’s the only representation where each column is a variable.Why ensure that your data is tidy? There are two main advantages:There’s a general advantage to picking one consistent way of storing data. If you have a consistent data structure, it’s easier to learn the tools that work with it because they have an underlying uniformity.There’s a specific advantage to placing variables in columns because it allows R’s vectorised nature to shine. As you learned in mutate and summary functions, most built-in R functions work with vectors of values. That makes transforming tidy data feel particularly natural.dplyr, ggplot2, and all the other packages in the tidyverse are designed to work with tidy data. Here are a couple of small examples showing how you might work with table1. Compute rate per 10 Visualise changes over timelibraryggplot2ggplottable1, aesyear, cases +   geom_lineaesgroup = country, colour = grey50 +   geom_pointaescolour = country12.2.1 ExercisesUsing prose, describe how the variables and observations are organised in each of the sample tables.Compute the rate for table2, and table4a + table4b. You will need to perform four operations:Extract the number of TB cases per country per year.Extract the matching population per country per year.Divide cases by population, and multiply by 10000.Store back in the appropriate place.Which representation is easiest to work with? Which is hardest? Why?Recreate the plot showing change in cases over time using table2 instead of table1. What do you need to do first?12.3 Spreading and gatheringThe principles of tidy data seem so obvious that you might wonder if you’ll ever encounter a dataset that isn’t tidy. Unfortunately, however, most data that you will encounter will be untidy. There are two main reasons:Most people aren’t familiar with the principles of tidy data, and it’s hard to derive them yourself unless you spend a lot of time working with data.Data is often organised to facilitate some use other than analysis. For example, data is often organised to make entry as easy as possible.This means for most real analyses, you’ll need to do some tidying. The first step is always to figure out what the variables and observations are. Sometimes this is easy; other times you’ll need to consult with the people who originally generated the data. The second step is to resolve one of two common problems:One variable might be spread across multiple columns.One observation might be scattered across multiple rows.Typically a dataset will only suffer from one of these problems; it’ll only suffer from both if you’re really unlucky! To fix these problems, you’ll need the two most important functions in tidyr: gather and spread.12.3.1 GatheringA common problem is a dataset where some of the column names are not names of variables, but values of a variable. Take table4a: the column names 1999 and 2000 represent values of the year variable, and each row represents two observations, not one.table4 Afghanistan  2000   2666 5      Brazil  2000  80488 6       China  2000 213766The columns to gather are specified with dplyr::select style notation. Here there are only two columns, so we list them individually. Note that 1999 and 2000 are non-syntactic names because they don’t start with a letter so we have to surround them in backticks. To refresh your memory of the other ways to select columns, see select. Gathering `table4` into a tidy form.Figure 12.2: Gathering table4 into a tidy form.In the final result, the gathered columns are dropped, and we get new key and value columns. Otherwise, the relationships between the original variables are preserved. Visually, this is shown in Figure 12.2. We can use gather to tidy table4b in a similar fashion. The only difference is the variable stored in the cell Tidy the simple tibble below. Do you need to spread or gather it? What are the variables?preg - tribble  ~pregnant, ~male, ~female,  yes,     NA,    10,  no,      20,    12"
+# check “i before e except after c”
+str_view(chapter12,"ie")
+str_match(chapter12,"ie")
+
 
 #3. Is “q” always followed by a “u”?
 
@@ -238,6 +249,256 @@ str_view(test2,"^[^aeiou]+$")
 ```
 # 14.3.4 Repetition
 ```{r}
+# The next step up in power involves controlling how many times a pattern matches:
+# ?: 0 or 1
+# +: 1 or more
+# *: 0 or more
+x <- "1888 is the longest year in Roman numerals: MDCCCLXXXVIII"
+str_view(x, "CC?")
+str_view(x, "CC+")
+str_view(x, 'C[LX]+')
+# Note that the precedence of these operators is high, so you can write: colou?r to match either American or British spellings. That means most uses will need parentheses, like bana(na)+.
+# You can also specify the number of matches precisely:
+# {n}: exactly n
+# {n,}: n or more
+# {,m}: at most m
+# {n,m}: between n and m
+str_view(x, "C{2}")
+str_view(x, "C{2,}")
+str_view(x, "C{2,3}")
+# By default these matches are “greedy”: they will match the longest string possible. You can make them “lazy”, matching the shortest string possible by putting a ? after them. This is an advanced feature of regular expressions, but it’s useful to know that it exists:
+str_view(x, 'C{2,3}?')
+str_view(x, 'C[LX]+?')
+
+```
+# 14.3.4.1 Exercises
+```{r}
+#1. Describe the equivalents of ?, +, * in {m,n} form.
+
+#2. Describe in words what these regular expressions match: (read carefully to see if I’m using a regular expression or a string that defines a regular expression.)
+
+##1. ^.*$
+##2. "\\{.+\\}"
+##3. \d{4}-\d{2}-\d{2}
+##4. "\\\\{4}"
+
+#3. Create regular expressions to find all words that:
+##1. Start with three consonants.
+##2. Have three or more vowels in a row.
+##3. Have two or more vowel-consonant pairs in a row. 
+
+#4. Solve the beginner regexp crosswords at https://regexcrossword.com/challenges/beginner.
+
+
+``` 
+## 14.3.5 Grouping and backreferences
+```{r error=TRUE}
+str_view(fruit, "(..)\\1", match = TRUE) # ???
+str_view(fruit, "(..)", match = TRUE)
+str_view(c(fruit,"bananana"), "(..)\\2", match = TRUE) # does not work
+
+str_view(fruit, "(an)\\1", match = TRUE) 
+
+```
+# 14.4 Tools
+## 14.4.1 Detect matches
+```{r}
+x <- c("apple", "banana", "pear")
+str_detect(x, "e")
+# How many common words start with t?
+sum(str_detect(words, "^t"))
+# What proportion of common words end with a vowel?
+mean(str_detect(words, "[aeiou]$"))
+# Find all words containing at least one vowel, and negate
+no_vowels_1 <- !str_detect(words, "[aeiou]")
+# Find all words consisting only of consonants (non-vowels)
+no_vowels_2 <- str_detect(words, "^[^aeiou]+$")
+identical(no_vowels_1, no_vowels_2)
+#> [1] TRUE
+words[str_detect(words, "x$")]
+#> [1] "box" "sex" "six" "tax"
+str_subset(words, "x$")
+#> [1] "box" "sex" "six" "tax"
+#
+df <- tibble(
+  word = words, 
+  i = seq_along(word)
+)
+df %>% 
+  filter(str_detect(words, "x$"))
+# 
+x <- c("apple", "banana", "pear")
+str_count(x, "a")
+#> [1] 1 3 1
+
+# On average, how many vowels per word?
+mean(str_count(words, "[aeiou]"))
+#> [1] 1.99
+
+#
+df %>% 
+  mutate(
+    vowels = str_count(word, "[aeiou]"),
+    consonants = str_count(word, "[^aeiou]")
+  )
+
+#
+str_count("abababa", "aba")
+#> [1] 2
+str_view_all("abababa", "aba")
+
+```
+# 14.4.2 Exercises
+```{r}
+#1. For each of the following challenges, try solving it by using both a single regular expression, and a combination of multiple str_detect() calls.
+
+##1. Find all words that start or end with x.
+
+##2. Find all words that start with a vowel and end with a consonant.
+
+##3. Are there any words that contain at least one of each different vowel?
+
+#2. What word has the highest number of vowels? What word has the highest proportion of vowels? (Hint: what is the denominator?)
 
 
 ```
+## 14.4.3 Extract matches
+```{r}
+length(sentences)
+head(sentences)
+colours <- c("red", "orange", "yellow", "green", "blue", "purple")
+colour_match <- str_c(colours, collapse = "|")
+colour_match
+#
+has_colour <- str_subset(sentences, colour_match)
+matches <- str_extract(has_colour, colour_match)
+head(matches)
+#
+more <- sentences[str_count(sentences, colour_match) > 1]
+str_view_all(more, colour_match)
+#
+str_extract(more, colour_match)
+#
+str_extract_all(more, colour_match)
+#
+str_extract_all(more, colour_match, simplify = TRUE)
+#
+x <- c("a", "a b", "a b c")
+str_extract_all(x, "[a-z]", simplify = TRUE)
+
+```
+## 14.4.3.1 Exercises
+```{r}
+#1. In the previous example, you might have noticed that the regular expression matched “flickered”, which is not a colour. Modify the regex to fix the problem.
+
+#2. From the Harvard sentences data, extract:
+
+##1. The first word from each sentence.
+##2. All words ending in ing.
+##3. All plurals.
+
+```
+# 14.4.4 Grouped matches
+```{r}
+noun <- "(a|the) ([^ ]+)"
+
+has_noun <- sentences %>%
+  str_subset(noun) %>%
+  head(10)
+has_noun %>% 
+  str_extract(noun)
+# str_extract() gives us the complete match; str_match() gives each individual component. Instead of a character vector, it returns a matrix, with one column for the complete match followed by one column for each group:
+has_noun %>% 
+  str_match(noun)
+# If your data is in a tibble, it’s often easier to use tidyr::extract(). It works like str_match() but requires you to name the matches, which are then placed in new columns:
+tibble(sentence = sentences) %>% 
+  tidyr::extract(
+    sentence, c("article", "noun"), "(a|the) ([^ ]+)", 
+    remove = FALSE
+  )
+# Like str_extract(), if you want all matches for each string, you’ll need str_match_all().
+
+```
+## 14.4.4.1 Exercises
+```{r}
+#1. Find all words that come after a “number” like “one”, “two”, “three” etc. Pull out both the number and the word.
+
+#2. Find all contractions. Separate out the pieces before and after the apostrophe.
+
+```
+# 14.4.5 Replacing matches
+```{r}
+x <- c("apple", "pear", "banana")
+str_replace(x, "[aeiou]", "-") #> [1] "-pple"  "p-ar"   "b-nana"
+str_replace_all(x, "[aeiou]", "-") #> [1] "-ppl-"  "p--r"   "b-n-n-"
+#
+x <- c("1 house", "2 cars", "3 people")
+str_replace_all(x, c("1" = "one", "2" = "two", "3" = "three")) #> [1] "one house"    "two cars"     "three people"
+head(sentences,5) # original
+sentences %>% 
+  str_replace("([^ ]+) ([^ ]+) ([^ ]+)", "\\1 \\3 \\2") %>% 
+  head(5)
+
+```
+# 14.4.5.1 Exercises
+```{r}
+#1. Replace all forward slashes in a string with backslashes.
+
+#2. Implement a simple version of str_to_lower() using replace_all().
+
+#3. Switch the first and last letters in words. Which of those strings are still words?
+
+```
+# 14.4.6 Splitting
+```{r}
+sentences %>%
+  head(5) %>% 
+  str_split(" ")
+#
+"a|b|c|d" %>% 
+  str_split("\\|") %>% 
+  .[[1]] # ?
+#
+sentences %>%
+  head(5) %>% 
+  str_split(" ", simplify = TRUE)
+#
+fields <- c("Name: Hadley", "Country: NZ", "Age: 35")
+fields %>% str_split(": ", n = 2, simplify = TRUE)
+
+# Instead of splitting up strings by patterns, you can also split up by character, line, sentence and word boundary()s:
+x <- "This is a sentence.  This is another sentence."
+str_view_all(x, boundary("word"))
+str_split(x, " ")[[1]]
+str_split(x, boundary("word"))[[1]]
+
+```
+# 14.4.6.1 Exercises
+```{r}
+#1. Split up a string like "apples, pears, and bananas" into individual components.
+
+#2. Why is it better to split up by boundary("word") than " "?
+
+#3. What does splitting with an empty string ("") do? Experiment, and then read the documentation.
+
+```
+# 14.4.7 Find matches
+## str_locate() and str_locate_all() give you the starting and ending positions of each match. These are particularly useful when none of the other functions does exactly what you want. You can use str_locate() to find the matching pattern, str_sub() to extract and/or modify them.
+# 14.5 Other types of pattern
+```{r}
+str_view(fruit, "nana")
+str_view(fruit, regex("nana"))
+# ignore case
+bananas <- c("banana", "Banana", "BANANA")
+str_view(bananas, "banana")
+str_view(bananas, regex("banana", ignore_case = TRUE))
+# multiline = TRUE allows ^ and $ to match the start and end of each line rather than the start and end of the complete string.
+# x <- "Line 1\nLine 2\nLine 3"
+str_extract_all(x, "^Line")[[1]]
+#> [1] "Line"
+str_extract_all(x, regex("^Line", multiline = TRUE))[[1]]
+#> [1] "Line" "Line" "Line"
+
+```
+ 
+
