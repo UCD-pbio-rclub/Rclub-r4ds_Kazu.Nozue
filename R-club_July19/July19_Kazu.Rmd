@@ -274,6 +274,15 @@ str_view(x, 'C[LX]+?')
 # 14.3.4.1 Exercises
 ```{r}
 #1. Describe the equivalents of ?, +, * in {m,n} form.
+## ?: {0,1}
+str_view(x, "CC?")
+str_view(x, "CC{0,1}")
+## +: {1,}
+str_view(x, "CC+")
+str_view(x, "CC{1,}")
+## *; {0,}
+str_view(x, 'CCC*')
+str_view(x, 'CCC{0,}')
 
 #2. Describe in words what these regular expressions match: (read carefully to see if I’m using a regular expression or a string that defines a regular expression.)
 
@@ -296,6 +305,8 @@ str_view(x, 'C[LX]+?')
 str_view(fruit, "(..)\\1", match = TRUE) # ???
 str_view(fruit, "(..)", match = TRUE)
 str_view(c(fruit,"bananana"), "(..)\\2", match = TRUE) # does not work
+str_view("bananana", "(..)\\2", match = TRUE) # does not work. \\2 is the second parenthesis
+str_view("bananana", "(..)\\1{2}", match = TRUE) # does work 
 
 str_view(fruit, "(an)\\1", match = TRUE) 
 
@@ -351,14 +362,32 @@ str_view_all("abababa", "aba")
 # 14.4.2 Exercises
 ```{r}
 #1. For each of the following challenges, try solving it by using both a single regular expression, and a combination of multiple str_detect() calls.
-
 ##1. Find all words that start or end with x.
+words
+str_subset(words,"^x|x$")
 
 ##2. Find all words that start with a vowel and end with a consonant.
+# single regular expression
+single <- str_subset(words, "^[aeiou].*[^aeiou]$")
+head(single)
 
+# multiple str_detect()
+vowel_start <- str_detect(words, "^[aeiou]")
+consonant_end <- str_detect(words, "[^aeiou]$")
+multiple <- words[vowel_start & consonant_end]
+head(multiple)
+
+identical(single, multiple)
 ##3. Are there any words that contain at least one of each different vowel?
-
+str_detect(word,)
 #2. What word has the highest number of vowels? What word has the highest proportion of vowels? (Hint: what is the denominator?)
+
+word %>% 
+  mutate(
+    vowels = str_count(word, "[aeiou]"),
+    consonants = str_count(word, "[^aeiou]")
+  )
+
 
 
 ```
@@ -425,6 +454,7 @@ tibble(sentence = sentences) %>%
 
 #2. Find all contractions. Separate out the pieces before and after the apostrophe.
 
+
 ```
 # 14.4.5 Replacing matches
 ```{r}
@@ -443,6 +473,9 @@ sentences %>%
 # 14.4.5.1 Exercises
 ```{r}
 #1. Replace all forward slashes in a string with backslashes.
+unixpath <- getwd()
+unixpath
+unixpath %>% str_replace_all("/","\\\\")
 
 #2. Implement a simple version of str_to_lower() using replace_all().
 
@@ -476,6 +509,8 @@ str_split(x, boundary("word"))[[1]]
 # 14.4.6.1 Exercises
 ```{r}
 #1. Split up a string like "apples, pears, and bananas" into individual components.
+str_split("apples, pears, and bananas",pattern = ",")
+str_split("apples, pears, and bananas",pattern = "(, (and )?)") # J
 
 #2. Why is it better to split up by boundary("word") than " "?
 
@@ -498,7 +533,56 @@ str_extract_all(x, "^Line")[[1]]
 #> [1] "Line"
 str_extract_all(x, regex("^Line", multiline = TRUE))[[1]]
 #> [1] "Line" "Line" "Line"
+# comments = TRUE allows you to use comments and white space to make complex regular expressions more understandable. Spaces are ignored, as is everything after #. To match a literal space, you’ll need to escape it: "\\ ".
+phone <- regex("
+  \\(?     # optional opening parens
+  (\\d{3}) # area code
+  [)- ]?   # optional closing parens, dash, or space
+  (\\d{3}) # another three numbers
+  [ -]?    # optional space or dash
+  (\\d{3}) # three more numbers
+  ", comments = TRUE)
+
+str_match("514-791-8141", phone)
+#>      [,1]          [,2]  [,3]  [,4] 
+#> [1,] "514-791-814" "514" "791" "814"
+# dotall = TRUE allows . to match everything, including \n.
+
+# There are three other functions you can use instead of regex():
+# fixed(): matches exactly the specified sequence of bytes. It ignores all special regular expressions and operates at a very low level. This allows you to avoid complex escaping and can be much faster than regular expressions. The following microbenchmark shows that it’s about 3x faster for a simple example.
+microbenchmark::microbenchmark(
+  fixed = str_detect(sentences, fixed("the")),
+  regex = str_detect(sentences, "the"),
+  times = 20
+)
+# Beware using fixed() with non-English data. It is problematic because there are often multiple ways of representing the same character. For example, there are two ways to define “á”: either as a single character or as an “a” plus an accent:
+a1 <- "\u00e1"
+a2 <- "a\u0301"
+c(a1, a2)
+#> [1] "á" "á"
+a1 == a2
+#> [1] FALSE
+# They render identically, but because they’re defined differently, fixed() doesn’t find a match. Instead, you can use coll(), defined next, to respect human character comparison rules:
+str_detect(a1, fixed(a2))
+#> [1] FALSE
+str_detect(a1, coll(a2))
+#> [1] TRUE
+
+
 
 ```
- 
+# 14.5.1 Exercises 
+```{r}
+#1. How would you find all strings containing \ with regex() vs. with fixed()?
 
+#2. What are the five most common words in sentences?
+sentences
+
+
+```
+# 14.6 Other uses of regular expressions
+```{r}
+
+
+```
+# 

@@ -1,0 +1,83 @@
+---
+title: "chamber_temp_monitoring"
+author: "Kazu"
+date: "7/21/2017"
+output: 
+  html_document: 
+    keep_md: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(lubridate)
+library(nycflights13)
+```
+# reading data files
+## JT_2014_shelf10_JTshelf4_right.csv from James Ta; 2014
+## CEF501shelf13.csv from me (Kazu); 2017
+```{r}
+JT.data<-read_csv("R-club_Aug9/JT_2014_shelf10_JTshelf4_right.csv")
+JT.data
+KN.data<-read_csv("R-club_Aug9/CEF501shelf13.csv",skip=4)
+KN.data
+```
+# merge two data and drawing temp trace in one plot
+```{r}
+
+```
+# draw each data in daily temp trace manner (eg. 24h) separately and compare them side-by-side
+```{r}
+# reformat JT.data
+# JT.data.s <- JT.data %>% select("Date Time, GMT-08:00") # 
+JT.data.s <- JT.data %>% select(1:2) # 
+# split "Date Time, GMT-08:00" into date and time
+JT.data.ss<-JT.data.s %>% separate("Date Time, GMT-07:00",into=c("Date","Time"),sep=" ") # separated by white space
+# plot 
+JT.data.ss %>% ggplot(aes(x=`Time`,y=`Temp, C`,color=Date)) + geom_point() + theme(legend.position = "none") # needs to work on Time？
+# remove missing data
+JT.data.sss<-JT.data.ss %>% filter(!is.na(`Temp, C`))
+JT.data.sss %>% ggplot(aes(x=`Time`,y=`Temp, C`,color=Date)) + geom_point() + theme(legend.position = "none") # T_SHOW_BACKTRACE environmental variable.
+
+# treat the date/time as date object
+# JT.data.s$`Date Time, GMT-07:00`<-as_datetime(JT.data.s$`Date Time, GMT-07:00`) # needs library(lubridate). error
+JT.data.s$`Date Time, GMT-07:00`<-mdy_hm(JT.data.s$`Date Time, GMT-07:00`) # needs library(lubridate). works
+# rename column name
+JT.data.s<-JT.data.s %>% rename(Datetime=`Date Time, GMT-07:00`)
+# 
+minute(JT.data.s$Datetime)
+yday(JT.data.s$Datetime) # how to extract year-month-date?
+JT.data.s %>% ggplot(aes(x=hour(Datetime)+minute(Datetime)/60,y=`Temp, C`,color=yday(Datetime))) + geom_point(alpha=0.1) + theme(legend.position = "none") #Removed 1 rows containing missing values (geom_point). 
+
+JT.data.s %>% mutate(yday=yday(JT.data.s$Datetime),
+      hour=hour(JT.data.s$Datetime),
+      min=minute(JT.data.s$Datetime)
+) %>% filter(yday>182 & yday<233) %>% ggplot(aes(x=hour(Datetime)+minute(Datetime)/60,y=`Temp, C`)) + geom_point(color="magenta")  + facet_wrap(~yday,nrow=5) + scale_y_continuous(limits=c(19,28)) + theme(legend.position = "none",strip.text=element_text(size=5)) -> p.JT.data.s.182.233 
+ggsave("2014.pdf",p.JT.data.s.182.233,width=11,height=8)
+
+# working on my data
+KN.data.s<-KN.data %>% select(2:3) %>% mutate(Datetime=mdy_hms(`Date/Time`)) %>%
+mutate(yday=yday(KN.data.s$Datetime),
+      hour=hour(KN.data.s$Datetime),
+      min=minute(KN.data.s$Datetime)
+)
+summary(KN.data.s)
+summary(KN.data.s %>% filter(yday>33 & yday<74))
+KN.data.s %>% filter(yday>33 & yday<74) %>% ggplot(aes(x=hour+min/60,y=`Temp(C)`)) + geom_point(color="green") + facet_wrap(~yday,nrow=5) + scale_y_continuous(limits=c(19,28))+theme(legend.position = "none",strip.text=element_text(size=5))-> p.KN.data.s.33.74.Feb.Mar# better
+ggsave("2017.Feb.Mar.pdf",p.KN.data.s.33.74.Feb.Mar,width=11,height=8)
+# after chamber repair
+KN.data.s %>% filter(yday>130 & yday<171) %>% ggplot(aes(x=hour+min/60,y=`Temp(C)`)) + geom_point(color="black") + facet_wrap(~yday,nrow=5) + scale_y_continuous(limits=c(19,28))+theme(legend.position = "none",strip.text=element_text(size=5))-> p.KN.data.s.130.171.May11# better
+ggsave("2017.afterMay11.pdf",p.KN.data.s.130.171.May11,width=11,height=8)
+
+
+# agry plot
+KN.data.s %>% filter(yday>33 & yday<50) %>% ggplot(aes(x=hour+min/60,y=`Temp(C)`,color=yday)) + geom_line(alpha=0.5)  +theme(legend.position = "none") 
+
+# plot both (under construction)
+library(cowplot)
+p<-plot_grid(p.JT.data.s.182.233,p.KN.data.s.33.74,labels=c("2014","2017"))
+save_plot("2014.2017.CEF501temp.pdf",p)
+
+
+```
+

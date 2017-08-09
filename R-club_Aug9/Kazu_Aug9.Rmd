@@ -1,0 +1,280 @@
+---
+title: "Kazu_Aug9"
+author: "Kazu"
+date: "8/9/2017"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# 15
+```{r}
+library(tidyverse)
+library(forcats)
+```
+# 15.2 Creating factors
+```{r}
+x1 <- c("Dec", "Apr", "Jan", "Mar")
+x2 <- c("Dec", "Apr", "Jam", "Mar")
+sort(x1)
+month_levels <- c(
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+)
+y1 <- factor(x1, levels = month_levels)
+y1
+sort(y1)
+y2 <- factor(x2, levels = month_levels)
+y2 # <NA>
+y2 <- parse_factor(x2, levels = month_levels) # If you want a warning, you can use readr::parse_factor():
+factor(x1) # If you omit the levels, they’ll be taken from the data in alphabetical order:
+
+# Sometimes you’d prefer that the order of the levels match the order of the first appearance in the data. You can do that when creating the factor by setting levels to unique(x), or after the fact, with fct_inorder():
+f1 <- factor(x1, levels = unique(x1))
+f1
+
+f2 <- x1 %>% factor() %>% fct_inorder()
+f2
+
+# If you ever need to access the set of valid levels directly, you can do so with levels():
+levels(f2)
+```
+# 15.3 General Social Survey
+```{r}
+# For the rest of this chapter, we’re going to focus on forcats::gss_cat. It’s a sample of data from the General Social Survey, which is a long-running US survey conducted by the independent research organization NORC at the University of Chicago. The survey has thousands of questions, so in gss_cat I’ve selected a handful that will illustrate some common challenges you’ll encounter when working with factors.
+gss_cat # 
+gss_cat %>%
+  count(race)
+ggplot(gss_cat, aes(race)) +
+  geom_bar()
+# By default, ggplot2 will drop levels that don’t have any values. You can force them to display with:
+ggplot(gss_cat, aes(race)) +
+  geom_bar() +
+  scale_x_discrete(drop = FALSE) # this line!
+```
+# 15.3.1 Exercise
+```{r}
+#1. Explore the distribution of rincome (reported income). What makes the default bar chart hard to understand? How could you improve the plot?
+gss_cat %>% ggplot(aes(rincome)) + geom_bar()
+gss_cat %>% ggplot(aes(rincome)) + geom_bar() + theme(axis.text.x = element_text(angle = 90)) # rincome is not sorted
+gss_cat %>% ggplot(aes(fct_relevel(rincome, "Not applicable"))) + geom_bar() + theme(axis.text.x = element_text(angle = 90)) # rincome is not sorted by income. $25000 or more is too many and needs to be divided.
+
+#2. What is the most common relig in this survey? What’s the most common partyid?
+gss_cat %>% ggplot(aes(relig)) + geom_bar()+ theme(axis.text.x = element_text(angle = 90)) # Protestant
+gss_cat %>% ggplot(aes(partyid)) + geom_bar()+ theme(axis.text.x = element_text(angle = 90)) # Independent
+
+#3. Which relig does denom (denomination) apply to? How can you find out with a table? How can you find out with a visualisation?
+
+```
+# 15.4 Modifying factor order
+```{r}
+relig_summary <- gss_cat %>%
+  group_by(relig) %>%
+  summarise(
+    age = mean(age, na.rm = TRUE),
+    tvhours = mean(tvhours, na.rm = TRUE),
+    n = n()
+  )
+
+ggplot(relig_summary, aes(tvhours, relig)) + geom_point()
+# It is difficult to interpret this plot because there’s no overall pattern. We can improve it by reordering the levels of relig using fct_reorder(). fct_reorder() takes three arguments:
+# f, the factor whose levels you want to modify.
+# x, a numeric vector that you want to use to reorder the levels.
+# Optionally, fun, a function that’s used if there are multiple values of x for each value of f. The default value is median
+
+ggplot(relig_summary, aes(tvhours, fct_reorder(relig, tvhours))) +
+  geom_point()
+# Reordering religion makes it much easier to see that people in the “Don’t know” category watch much more TV, and Hinduism & Other Eastern religions watch much less.
+# As you start making more complicated transformations, I’d recommend moving them out of aes() and into a separate mutate() step. For example, you could rewrite the plot above as:
+relig_summary %>%
+  mutate(relig = fct_reorder(relig, tvhours)) %>%
+  ggplot(aes(tvhours, relig)) +
+    geom_point()
+# What if we create a similar plot looking at how average age varies across reported income level?
+rincome_summary <- gss_cat %>%
+  group_by(rincome) %>%
+  summarise(
+    age = mean(age, na.rm = TRUE),
+    tvhours = mean(tvhours, na.rm = TRUE),
+    n = n()
+  )
+
+ggplot(rincome_summary, aes(age, fct_reorder(rincome, age))) + geom_point()
+# Here, arbitrarily reordering the levels isn’t a good idea! That’s because rincome already has a principled order that we shouldn’t mess with. Reserve fct_reorder() for factors whose levels are arbitrarily ordered.
+# However, it does make sense to pull “Not applicable” to the front with the other special levels. You can use fct_relevel(). It takes a factor, f, and then any number of levels that you want to move to the front of the line.
+ggplot(rincome_summary, aes(age, fct_relevel(rincome, "Not applicable"))) +
+  geom_point()
+# Why do you think the average age for “Not applicable” is so high?
+
+# Another type of reordering is useful when you are colouring the lines on a plot. fct_reorder2() reorders the factor by the y values associated with the largest x values. This makes the plot easier to read because the line colours line up with the legend.
+by_age <- gss_cat %>%
+  filter(!is.na(age)) %>%
+  group_by(age, marital) %>%
+  count() %>%
+  mutate(prop = n / sum(n))
+
+ggplot(by_age, aes(age, prop, colour = marital)) +
+  geom_line(na.rm = TRUE)
+
+ggplot(by_age, aes(age, prop, colour = fct_reorder2(marital, age, prop))) +
+  geom_line() +
+  labs(colour = "marital")
+# Finally, for bar plots, you can use fct_infreq() to order levels in increasing frequency: this is the simplest type of reordering because it doesn’t need any extra variables. You may want to combine with fct_rev().
+gss_cat %>%
+  mutate(marital = marital %>% fct_infreq() %>% fct_rev()) %>%
+  ggplot(aes(marital)) +
+    geom_bar()
+
+```
+# 15.4.1 Exercises
+```{r}
+#1. There are some suspiciously high numbers in tvhours. Is the mean a good summary?
+ggplot(gss_cat,aes(tvhours)) + geom_histogram() # I do not think so.
+gss_cat %>% filter(tvhours > 15) %>% summary()
+ggplot(gss_cat, aes(year, tvhours)) + geom_jitter(aes(color=race))
+ggplot(gss_cat, aes(marital, tvhours)) + geom_jitter(aes(color=race))
+ggplot(gss_cat, aes(marital, tvhours)) + geom_violin()
+ggplot(gss_cat, aes(marital, tvhours)) + geom_jitter(aes(color=denom))
+ggplot(gss_cat, aes(denom, tvhours)) + geom_jitter(aes(color=marital))
+ggplot(gss_cat, aes(denom, tvhours)) + geom_jitter(aes(color=partyid))
+ggplot(gss_cat, aes(partyid, tvhours)) + geom_jitter(aes(color=marital))
+# which factors and their interactions are related to tvhorus?
+library(lme4);library(lmerTest)
+#lmer(data=gss_cat,tvhours~marital*age*race*rincome*partyid*relig*denom + (1|year)) # error
+gss_cat.lmer<-lmer(data=gss_cat,tvhours~marital + age + race + rincome + partyid + relig + denom +
+       marital:age + marital:race + marital:rincome + marital:partyid + marital:relig + marital:denom +
+      age:race + age:rincome + age:partyid + age:relig + age:denom +
+       race:rincome + race:partyid + race:relig + race:denom +
+       rincome:partyid + rincome:relig + rincome:denom +
+       partyid:relig + partyid:denom +
+       relig:denom + (1|year)) 
+save(gss_cat.lmer, file="gss_cat.lmer.Rdata")
+summary(gss_cat.lmer)
+
+#2. For each factor in gss_cat identify whether the order of the levels is arbitrary or principled.
+str(gss_cat)
+levels(gss_cat$marital) # artibrary
+levels(gss_cat$race) # artibrary
+levels(gss_cat$rincome) # principled
+levels(gss_cat$partyid) # artibrary
+levels(gss_cat$relig) # artibrary
+levels(gss_cat$denom) # artibrary
+
+#3. Why did moving “Not applicable” to the front of the levels move it to the bottom of the plot?
+levels(fct_relevel(rincome_summary$rincome, "Not applicable")) # according to new levels
+
+
+```
+# 15.5 Modifying factor levels
+```{r}
+
+```
+
+# R-club Aug9 assignment
+# On your own:
+# Chapter 15 (Factors)
+# Chapter 16 (Date and Time) <- Important for Harmer lab!
+
+# For August 9th:
+# Chapter 17 (it is just a fast intro)
+# Chapter 18 (pretty fast and no exercises...but DO work through the examples)
+
+# Chapterr 17
+# Chapter 18: Pipes
+# 18.1 and 2 
+# 18.2 Piping alternatives
+```{r}
+library(magrittr)
+foo_foo <- little_bunny()
+# 18.2.1 Intermediate steps
+foo_foo_1 <- hop(foo_foo, through = forest)
+foo_foo_2 <- scoop(foo_foo_1, up = field_mice)
+foo_foo_3 <- bop(foo_foo_2, on = head)
+diamonds <- ggplot2::diamonds
+diamonds2 <- diamonds %>% 
+  dplyr::mutate(price_per_carat = price / carat)
+
+pryr::object_size(diamonds)
+#> 3.46 MB
+pryr::object_size(diamonds2)
+#> 3.89 MB
+pryr::object_size(diamonds, diamonds2)
+#> 3.89 MB
+diamonds$carat[1] <- NA
+pryr::object_size(diamonds)
+#> 3.46 MB
+pryr::object_size(diamonds2)
+#> 3.89 MB
+pryr::object_size(diamonds, diamonds2)
+#> 4.32 MB
+# 18.2.2 Overwrite the original
+foo_foo <- hop(foo_foo, through = forest)
+foo_foo <- scoop(foo_foo, up = field_mice)
+foo_foo <- bop(foo_foo, on = head)
+# 18.2.3 Function composition
+bop(
+  scoop(
+    hop(foo_foo, through = forest),
+    up = field_mice
+  ), 
+  on = head
+)
+# 18.2.4 Use the pipe
+foo_foo %>%
+  hop(through = forest) %>%
+  scoop(up = field_mouse) %>%
+  bop(on = head)
+#
+my_pipe <- function(.) {
+  . <- hop(., through = forest)
+  . <- scoop(., up = field_mice)
+  bop(., on = head)
+}
+my_pipe(foo_foo)
+
+
+
+```
+# 18.3 When not to use the pipe
+# The pipe is a powerful tool, but it’s not the only tool at your disposal, and it doesn’t solve every problem! Pipes are most useful for rewriting a fairly short linear sequence of operations. I think you should reach for another tool when:
+
+# Your pipes are longer than (say) ten steps. In that case, create intermediate objects with meaningful names. That will make debugging easier, because you can more easily check the intermediate results, and it makes it easier to understand your code, because the variable names can help communicate intent.
+
+# You have multiple inputs or outputs. If there isn’t one primary object being transformed, but two or more objects being combined together, don’t use the pipe.
+
+# You are starting to think about a directed graph with a complex dependency structure. Pipes are fundamentally linear and expressing complex relationships with them will typically yield confusing code.
+
+# 18.4 Other tools from magrittr
+## All packages in the tidyverse automatically make %>% available for you, so you don’t normally load magrittr explicitly. However, there are some other useful tools inside magrittr that you might want to try out:
+
+## When working with more complex pipes, it’s sometimes useful to call a function for its side-effects. Maybe you want to print out the current object, or plot it, or save it to disk. Many times, such functions don’t return anything, effectively terminating the pipe.
+
+## To work around this problem, you can use the “tee” pipe. %T>% works like %>% except that it returns the left-hand side instead of the right-hand side. It’s called “tee” because it’s like a literal T-shaped pipe.
+```{r}
+rnorm(100) %>%
+  matrix(ncol = 2) %>%
+  plot() %>%
+  str()
+#>  NULL
+
+rnorm(100) %>%
+  matrix(ncol = 2) %T>%
+  plot() %>%
+  str()
+#>  num [1:50, 1:2] -0.387 -0.785 -1.057 -0.796 -1.756 ...
+# If you’re working with functions that don’t have a data frame based API
+# (i.e. you pass them individual vectors, not a data frame and expressions to be evaluated in the context of that data frame), you might find %$% useful. It “explodes” out the variables in a data frame so that you can refer to them explicitly. This is useful when working with many functions in base R:
+  mtcars %$%
+  cor(disp, mpg)
+# For assignment magrittr provides the %<>% operator which allows you to replace code like:
+  mtcars <- mtcars %>% 
+  transform(cyl = cyl * 2)
+  # with
+  mtcars %<>% transform(cyl = cyl * 2)
+# I’m not a fan of this operator because I think assignment is such a special operation that it should always be clear when it’s occurring. In my opinion, a little bit of duplication (i.e. repeating the name of the object twice) is fine in return for making assignment more explicit.
+    
+```
+
+
+
+
