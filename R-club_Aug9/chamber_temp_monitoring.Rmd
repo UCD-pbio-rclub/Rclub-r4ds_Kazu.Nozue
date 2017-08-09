@@ -71,7 +71,7 @@ KN.data.s %>% filter(yday>130 & yday<171) %>% ggplot(aes(x=hour+min/60,y=`Temp(C
 ggsave("2017.afterMay11.pdf",p.KN.data.s.130.171.May11,width=11,height=8)
 
 
-# agry plot
+# ugry plot
 KN.data.s %>% filter(yday>33 & yday<50) %>% ggplot(aes(x=hour+min/60,y=`Temp(C)`,color=yday)) + geom_line(alpha=0.5)  +theme(legend.position = "none") 
 
 # plot both (under construction)
