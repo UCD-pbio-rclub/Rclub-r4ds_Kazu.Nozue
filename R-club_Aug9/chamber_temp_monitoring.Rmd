@@ -17,9 +17,9 @@ library(nycflights13)
 ## JT_2014_shelf10_JTshelf4_right.csv from James Ta; 2014
 ## CEF501shelf13.csv from me (Kazu); 2017
 ```{r}
-JT.data<-read_csv("R-club_Aug9/JT_2014_shelf10_JTshelf4_right.csv")
+JT.data<-read_csv("JT_2014_shelf10_JTshelf4_right.csv")
 JT.data
-KN.data<-read_csv("R-club_Aug9/CEF501shelf13.csv",skip=4)
+KN.data<-read_csv("CEF501shelf13.csv",skip=4)
 KN.data
 ```
 # merge two data and drawing temp trace in one plot
@@ -56,7 +56,8 @@ JT.data.s %>% mutate(yday=yday(JT.data.s$Datetime),
 ggsave("2014.pdf",p.JT.data.s.182.233,width=11,height=8)
 
 # working on my data
-KN.data.s<-KN.data %>% select(2:3) %>% mutate(Datetime=mdy_hms(`Date/Time`)) %>%
+KN.data.s<-KN.data %>% select(2:3) %>% mutate(Datetime=mdy_hms(`Date/Time`))
+KN.data.s<-KN.data.s %>%
 mutate(yday=yday(KN.data.s$Datetime),
       hour=hour(KN.data.s$Datetime),
       min=minute(KN.data.s$Datetime)
@@ -74,9 +75,9 @@ ggsave("2017.afterMay11.pdf",p.KN.data.s.130.171.May11,width=11,height=8)
 KN.data.s %>% filter(yday>33 & yday<50) %>% ggplot(aes(x=hour+min/60,y=`Temp(C)`,color=yday)) + geom_line(alpha=0.5)  +theme(legend.position = "none") 
 
 # plot both (under construction)
-library(cowplot)
-p<-plot_grid(p.JT.data.s.182.233,p.KN.data.s.33.74,labels=c("2014","2017"))
-save_plot("2014.2017.CEF501temp.pdf",p)
+# library(cowplot)
+# p<-plot_grid(p.JT.data.s.182.233,p.KN.data.s.33.74.Feb.Mar,labels=c("2014","2017"))
+# save_plot("2014.2017.CEF501temp.pdf",p)
 
 
 ```
