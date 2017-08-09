@@ -26,19 +26,36 @@ KN.data
 ```{r}
 
 ```
+
+
 # draw each data in daily temp trace manner (eg. 24h) separately and compare them side-by-side
 ```{r}
 # reformat JT.data
-# JT.data.s <- JT.data %>% select("Date Time, GMT-08:00") # 
+#JT.data.s <- JT.data %>% select("Date Time, GMT-08:00") # 
 JT.data.s <- JT.data %>% select(1:2) # 
 # split "Date Time, GMT-08:00" into date and time
 JT.data.ss<-JT.data.s %>% separate("Date Time, GMT-07:00",into=c("Date","Time"),sep=" ") # separated by white space
 # plot 
-JT.data.ss %>% ggplot(aes(x=`Time`,y=`Temp, C`,color=Date)) + geom_point() + theme(legend.position = "none") # needs to work on Time？
+JT.data.ss %>% ggplot(aes(x=`Time`,y=`Temp, C`,color=Date)) + 
+  geom_point() + 
+  theme(legend.position = "none") +
+  theme(axis.text.x = element_text(angle=90,size=8))# needs to work on Time？
 # remove missing data
 JT.data.sss<-JT.data.ss %>% filter(!is.na(`Temp, C`))
 JT.data.sss %>% ggplot(aes(x=`Time`,y=`Temp, C`,color=Date)) + geom_point() + theme(legend.position = "none") # T_SHOW_BACKTRACE environmental variable.
+```
 
+```{r}
+JT.data.ss.time <- JT.data.ss %>% mutate(time2=hm(Time))
+JT.data.ss.time
+
+JT.data.ss.time %>% ggplot(aes(x=as.numeric(time2),y=`Temp, C`,color=Date)) + 
+  geom_point() +   theme(legend.position = "none")
+```
+
+
+
+```{r}
 # treat the date/time as date object
 # JT.data.s$`Date Time, GMT-07:00`<-as_datetime(JT.data.s$`Date Time, GMT-07:00`) # needs library(lubridate). error
 JT.data.s$`Date Time, GMT-07:00`<-mdy_hm(JT.data.s$`Date Time, GMT-07:00`) # needs library(lubridate). works
