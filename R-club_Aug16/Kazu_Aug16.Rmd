@@ -1,0 +1,327 @@
+---
+title: "Kazu_Aug16"
+author: "Kazu"
+date: "8/12/2017"
+output: 
+  html_document: 
+    keep_md: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# assignment: Chapter 19.1 through 19.4, including the exercises.
+# assignment: OK to skip exercises 19.3.1
+##########
+# 19 Functions
+# 19.1 Introduction
+# 19.2 When should you write a function?
+```{r}
+df <- tibble::tibble(
+  a = rnorm(10),
+  b = rnorm(10),
+  c = rnorm(10),
+  d = rnorm(10)
+)
+
+df$a <- (df$a - min(df$a, na.rm = TRUE)) / 
+  (max(df$a, na.rm = TRUE) - min(df$a, na.rm = TRUE))
+df$b <- (df$b - min(df$b, na.rm = TRUE)) / 
+  (max(df$b, na.rm = TRUE) - min(df$a, na.rm = TRUE))
+df$c <- (df$c - min(df$c, na.rm = TRUE)) / 
+  (max(df$c, na.rm = TRUE) - min(df$c, na.rm = TRUE))
+df$d <- (df$d - min(df$d, na.rm = TRUE)) / 
+  (max(df$d, na.rm = TRUE) - min(df$d, na.rm = TRUE))
+#
+(df$a - min(df$a, na.rm = TRUE)) /
+  (max(df$a, na.rm = TRUE) - min(df$a, na.rm = TRUE))
+#
+x <- df$a
+(x - min(x, na.rm = TRUE)) / (max(x, na.rm = TRUE) - min(x, na.rm = TRUE))
+#
+rng <- range(x, na.rm = TRUE)
+(x - rng[1]) / (rng[2] - rng[1])
+#
+rescale01 <- function(x) {
+  rng <- range(x, na.rm = TRUE)
+  (x - rng[1]) / (rng[2] - rng[1])
+}
+rescale01(c(0, 5, 10))
+rescale01(c(1, 2, 3, NA, 5))
+#
+df$a <- rescale01(df$a)
+df$b <- rescale01(df$b)
+df$c <- rescale01(df$c)
+df$d <- rescale01(df$d)
+df
+#
+x <- c(1:10, Inf)
+rescale01(x)
+# fix
+rescale01 <- function(x) {
+  rng <- range(x, na.rm = TRUE, finite = TRUE)
+  (x - rng[1]) / (rng[2] - rng[1])
+}
+rescale01(x)
+```
+# 19.2.1 Practice
+```{r}
+#1. Why is TRUE not a parameter to rescale01()? What would happen if x contained a single missing value, and na.rm was FALSE?
+# ?? y<-c(1,2,3,"",5)
+#2. In the second variant of rescale01(), infinite values are left unchanged. Rewrite rescale01() so that -Inf is mapped to 0, and Inf is mapped to 1.
+y<-c(Inf,-Inf, 1:10)
+rescale01.2 <- function(x) {
+  print(x)
+  x<-ifelse(x==-Inf,0,x)
+  print(x)
+  x<-ifelse(x==Inf,1,x)
+  print(x)
+  # origianl rescale01
+  rng <- range(x, na.rm = TRUE, finite = TRUE)
+  (x - rng[1]) / (rng[2] - rng[1])
+}
+rescale01.2(y) # works
+#3. Practice turning the following code snippets into functions. Think about what each function does. What would you call it? How many arguments does it need? Can you rewrite it to be more expressive or less duplicative?
+sampledata<-c(1:10, NA, 11:20, NA)
+
+NA.ratio<-function(x) {mean(is.na(x)) }
+NA.ratio(sampledata)
+# 
+sum(sampledata,na.rm=TRUE)
+portion<-function(y) {y / sum(y, na.rm = TRUE)}
+portion(sampledata)
+# CV
+cv<-function(x) {
+sd(x, na.rm = TRUE) / mean(x, na.rm = TRUE)}
+cv(sampledata)
+
+#4. Follow http://nicercode.github.io/intro/writing-functions.html to write your own functions to compute the variance and skew of a numeric vector.
+## Fisher-Pearson coefficient of skewness (see http://ww2.amstat.org/publications/jse/v19n2/doane.pdf)
+
+x<-rgamma(10, 1, 1)
+
+skewness <- function(x) {
+  m<-mean(x)
+  l<-length(x)
+  m3<- sum((x-m)^3)/l
+  s3<- sqrt(sum((x-m)^2)/(l-1))
+  m3/s3
+}
+skewness(x)
+#5. Write both_na(), a function that takes two vectors of the same length and returns the number of positions that have an NA in both vectors.
+a<-c(1, 3, NA, NA,4,5,6)
+b<-c(7,NA,8,NA,9,NA,10)
+c<-c(7,NA,8,NA,9,NA)
+is.na(a)*is.na(b) # works as logical AND
+grep("1",is.na(a)*is.na(b)) # 4
+# alternative
+grep("TRUE",is.na(a)&is.na(b))
+
+both_na<-function(x,y) {
+  if(length(x)==length(y)) {
+    print("Two vectors are equal length.")
+    print("The number of positions that have an NA in both vectors is ")
+    grep("1",is.na(x)*is.na(y)) 
+  } else {
+    print("Two vectors are not equal length.")
+  }
+}
+both_na()
+#6. What do the following functions do? Why are they useful even though they are so short?
+
+is_directory <- function(x) file.info(x)$isdir
+is_readable <- function(x) file.access(x, 4) == 0
+
+?file.info
+list.files()
+file.info(list.files())
+is_directory(list.files()) # I do not think this is useful.
+is_readable(list.files())
+
+#7.Read the complete lyrics to “Little Bunny Foo Foo”. There’s a lot of duplication in this song. Extend the initial piping example to recreate the complete song, and use functions to reduce the duplication.
+# Little bunny Foo Foo
+# Went hopping through the forest
+# Scooping up the field mice
+# And bopping them on the head
+# Down came the Good Fairy, and she said
+# "Little bunny Foo Foo
+# I don't want to see you
+# Scooping up the field mice
+# And bopping them on the head."
+# I'll give you three chances,
+# And if you don't behave, I will turn you into a goon!"
+# And the next day...
+
+
+
+
+
+```
+# 19.3 Functions are for humans and computers
+# 19.3.1 Exercises
+```{r}
+#1. Read the source code for each of the following three functions, puzzle out what they do, and then brainstorm better names.
+f1 <- function(string, prefix) {
+  substr(string, 1, nchar(prefix)) == prefix
+} # 
+f1(c("Maloof","Maloon","Mary"),"Mal") # prefix_yesno
+
+f2 <- function(x) {
+  if (length(x) <= 1) return(NULL)
+  x[-length(x)]
+} # ???
+
+f3 <- function(x, y) {
+  rep(y, length.out = length(x))
+} # 
+f3(c("Maloof","Harmer","Sinha"),"lab") # 
+
+#2. Take a function that you’ve written recently and spend 5 minutes brainstorming a better name for it and its arguments.
+
+#3. Compare and contrast rnorm() and MASS::mvrnorm(). How could you make them more consistent?
+?rnorm()
+MASS::mvrnorm()
+?mvrnorm()
+
+#4. Make a case for why norm_r(), norm_d() etc would be better than rnorm(), dnorm(). Make a case for the opposite.
+
+```
+# 19.4 Conditional execution
+# 19.4.2 Multiple conditions
+```{r}
+# But if you end up with a very long series of chained if statements, you should consider rewriting. One useful technique is the switch() function. It allows you to evaluate selected code based on position or name.
+#> function(x, y, op) {
+#>   switch(op,
+#>     plus = x + y,
+#>     minus = x - y,
+#>     times = x * y,
+#>     divide = x / y,
+#>     stop("Unknown op!")
+#>   )
+#> }
+## my own
+## example from switch()
+require(stats)
+centre <- function(x, type) {
+  switch(type,
+         mean = mean(x),
+         median = median(x),
+         trimmed = mean(x, trim = .1))
+}
+x <- rcauchy(10)
+centre(x, "mean")
+centre(x, "median")
+centre(x, "trimmed")
+# Another useful function that can often eliminate long chains of if statements is cut(). It’s used to discretise continuous variables.
+
+```
+# 19.4.3 Code style
+# Both if and function should (almost) always be followed by squiggly brackets ({}), and the contents should be indented by two spaces. This makes it easier to see the hierarchy in your code by skimming the left-hand margin.
+# An opening curly brace should never go on its own line and should always be followed by a new line. A closing curly brace should always go on its own line, unless it’s followed by else. Always indent the code inside curly braces.
+```{r}
+# Good
+if (y < 0 && debug) {
+  message("Y is negative")
+}
+
+if (y == 0) {
+  log(x)
+} else {
+  y ^ x
+}
+
+# Bad # error
+# if (y < 0 && debug)
+# message("Y is negative")
+# 
+# if (y == 0) {
+#   log(x)
+# } 
+# else {
+#   y ^ x
+# }
+# It’s ok to drop the curly braces if you have a very short if statement that can fit on one line:
+
+y <- 10
+x <- if (y < 20) "Too low" else "Too high"
+#I recommend this only for very brief if statements. Otherwise, the full form is easier to read:
+
+if (y < 20) {
+  x <- "Too low" 
+} else {
+  x <- "Too high"
+}
+
+```
+
+# 19.4.4 Exercises
+```{r}
+#1. What’s the difference between if and ifelse()? Carefully read the help and construct three examples that illustrate the key differences.
+?`if` # if(cond) cons.expr  else  alt.expr
+?`ifelse` # ifelse(test, yes, no)
+# an example in ?ifelse
+x <- c(6:-4)
+sqrt(x)  #- gives warning
+sqrt(ifelse(x >= 0, x, NA))  # no warning
+# under construction #####
+
+#2. Write a greeting function that says “good morning”, “good afternoon”, or “good evening”, depending on the time of day. (Hint: use a time argument that defaults to lubridate::now(). That will make it easier to test your function.)
+
+library(lubridate)
+lubridate::now()
+
+greetings<-function(time_now=lubridate::now()) {
+  if(hour(time_now)<12) {
+    print("good morning") } 
+  else if (hour(time_now)<17) {
+    print("good afternoon") }
+  else if (hour(time_now)<20) {
+    print("good evening") }
+  else print("good night")
+  }
+
+#3. Implement a fizzbuzz function. It takes a single number as input. If the number is divisible by three, it returns “fizz”. If it’s divisible by five it returns “buzz”. If it’s divisible by three and five, it returns “fizzbuzz”. Otherwise, it returns the number. Make sure you first write working code before you create the function.
+
+fizzbuzz<-function(x) {
+  if(x %% 3 ==0 & !x %% 5 ==0) { # case1, 3, 6, 9,12,
+    return("fizz")
+  } else if(x %% 5 ==0 & !x %% 3 ==0) {# case2,5,10,20
+    return("buzz")
+  } else if(x %% 3 ==0 & x%% 5==0) {# case3 15, 30, ....
+    return("fizzbuss")
+  } else { # others
+    return(x)
+  }
+}
+
+#4. How could you use cut() to simplify this set of nested if-else statements?
+if (temp <= 0) {
+  "freezing"
+} else if (temp <= 10) {
+  "cold"
+} else if (temp <= 20) {
+  "cool"
+} else if (temp <= 30) {
+  "warm"
+} else {
+  "hot"
+}
+# How would you change the call to cut() if I’d used < instead of <=? What is the other chief advantage of cut() for this 
+# problem? (Hint: what happens if you have many values in temp?)
+
+#5. What happens if you use switch() with numeric values?
+
+#6. What does this switch() call do? What happens if x is “e”?
+switch(x, 
+  a = ,
+  b = "ab",
+  c = ,
+  d = "cd"
+)
+# Experiment, then carefully read the documentation.
+
+
+
+
+
+```

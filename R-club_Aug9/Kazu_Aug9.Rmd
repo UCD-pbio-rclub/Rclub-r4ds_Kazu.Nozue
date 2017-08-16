@@ -149,8 +149,9 @@ gss_cat.lmer<-lmer(data=gss_cat,tvhours~marital + age + race + rincome + partyid
        partyid:relig + partyid:denom +
        relig:denom + (1|year)) 
 save(gss_cat.lmer, file="gss_cat.lmer.Rdata")
-summary(gss_cat.lmer)
-
+#load("../gss_cat.lmer.Rdata")
+summary.gss_cat.lmer<-summary(gss_cat.lmer)
+save(summary.gss_cat.lmer,file="summary.gss_cat.lmer.Rdata")
 #2. For each factor in gss_cat identify whether the order of the levels is arbitrary or principled.
 str(gss_cat)
 levels(gss_cat$marital) # artibrary
