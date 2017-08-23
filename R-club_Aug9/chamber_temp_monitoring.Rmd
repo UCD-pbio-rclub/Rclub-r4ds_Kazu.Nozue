@@ -44,7 +44,7 @@ JT.data.ss %>% ggplot(aes(x=`Time`,y=`Temp, C`,color=Date)) +
 JT.data.sss<-JT.data.ss %>% filter(!is.na(`Temp, C`))
 JT.data.sss %>% ggplot(aes(x=`Time`,y=`Temp, C`,color=Date)) + geom_point() + theme(legend.position = "none") # T_SHOW_BACKTRACE environmental variable.
 ```
-
+# J's version
 ```{r}
 JT.data.ss.time <- JT.data.ss %>% mutate(time2=hm(Time))
 JT.data.ss.time

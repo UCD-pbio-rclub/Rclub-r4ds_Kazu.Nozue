@@ -51,7 +51,13 @@ sum(x, na.rm = TRUE) # no type. 3
 commas(letters, collapse = "-")
 # Error in stringr::str_c(..., collapse = ", ") : 
 #  formal argument "collapse" matched by multiple actual arguments
-  
+
+commas <- function(...) stringr::str_c(..., collapse = "-")
+commas(letters, collapse = "-") # does not work
+
+commas <- function(...,collapse=", ") stringr::str_c(..., collapse = collapse)
+commas(letters, collapse = "-")
+
 #2. It’d be nice if you could supply multiple characters to the pad argument, e.g. rule("Title", pad = "-+"). Why doesn’t this currently work? How could you fix it?
 rule <- function(..., pad = "-") {
   title <- paste0(...)
@@ -71,7 +77,9 @@ xm <- mean(x)
 c(xm, mean(x, trim = 0.10))
 mean(c(x,50), trim = 0.10)
 mean(c(x,100), trim = 0.10)
-mean(c(x,100), trim = 0.3)
+# 
+mean(c(0:10,100:103), trim = 0.1)
+mean(c(0:5,100:103,6:10), trim = 0.1)
 
 #4. The default value for the method argument to cor() is c("pearson", "kendall", "spearman"). What does that mean? What value is used by default?
 ?cor
@@ -110,11 +118,11 @@ mtcars %>%
   mutate(mpg = ifelse(mpg < 20, NA, mpg)) %>% 
   show_missings() 
   
-## (MO) should be invisible()? No.
+## (MO) should be invisible()? 
 show_missings <- function(df) {
   n <- sum(is.na(df))
   cat("Missing values: ", n, "\n", sep = "")
-  return(df)
+  return(df) # needs this for pipe above
   #invisible(df)
 }
 ```
@@ -172,7 +180,7 @@ pryr::object_size(y)
 x<-c(Inf,0:8,-Inf,0.00,NA,NaN)
 is.finite(x) # Inf, -Inf, NA, NaN are FALSE
 is.infinite(x) # Inf, -Inf are TRUE
-!is.infinite(x) # Inf, -Inf are FALSEm while NA, NaN are TRUE.
+!is.infinite(x) # Inf, -Inf are FALSE, while NA, NaN are TRUE.
 
 #2. Read the source code for dplyr::near() (Hint: to see the source code, drop the ()). How does it work?
 dplyr::near
@@ -195,6 +203,7 @@ near(sqrt(2) ^ 2, 2)
 
 #3. A logical vector can take 3 possible values. How many possible values can an integer vector take? How many possible values can a double take? Use google to do some research.
 #?
+
 #4. Brainstorm at least four functions that allow you to convert a double to an integer. How do they differ? Be precise.
 
 x<-c(3.49999,4.4999999,4.50000000001)
@@ -210,7 +219,7 @@ library(readr)
 parse_integer(c("1", "2", "3"))
 parse_double(c("1", "2", "3.123"))
 parse_number("$1,123,456.00")
-parse_logical(1:10)
-parse_logical(TRUE)
-col_logical()
+parse_logical(c("1", "2", "3")) 
+
+
 ```
