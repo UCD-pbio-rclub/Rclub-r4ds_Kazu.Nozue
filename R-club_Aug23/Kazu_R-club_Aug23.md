@@ -85,7 +85,25 @@ commas(letters, collapse = "-")
 ```r
 # Error in stringr::str_c(..., collapse = ", ") : 
 #  formal argument "collapse" matched by multiple actual arguments
-  
+
+commas <- function(...) stringr::str_c(..., collapse = "-")
+commas(letters, collapse = "-") # does not work
+```
+
+```
+## Error in stringr::str_c(..., collapse = "-"): formal argument "collapse" matched by multiple actual arguments
+```
+
+```r
+commas <- function(...,collapse=", ") stringr::str_c(..., collapse = collapse)
+commas(letters, collapse = "-")
+```
+
+```
+## [1] "a-b-c-d-e-f-g-h-i-j-k-l-m-n-o-p-q-r-s-t-u-v-w-x-y-z"
+```
+
+```r
 #2. It’d be nice if you could supply multiple characters to the pad argument, e.g. rule("Title", pad = "-+"). Why doesn’t this currently work? How could you fix it?
 rule <- function(..., pad = "-") {
   title <- paste0(...)
@@ -108,7 +126,8 @@ rule("Title", pad = "-+*")
 ```
 
 ```r
-# what does author want me to do?
+# what does author want me to do? split pad into each character?
+
 
 #3. What does the trim argument to mean() do? When might you use it?
 ?mean
@@ -139,11 +158,20 @@ mean(c(x,100), trim = 0.10)
 ```
 
 ```r
-mean(c(x,100), trim = 0.3)
+# 
+mean(c(0:10,100:103), trim = 0.1)
 ```
 
 ```
-## [1] 6
+## [1] 27.53846
+```
+
+```r
+mean(c(0:5,100:103,6:10), trim = 0.1)
+```
+
+```
+## [1] 27.53846
 ```
 
 ```r
@@ -217,11 +245,11 @@ mtcars %>%
 ```
 
 ```r
-## (MO) should be invisible()? No.
+## (MO) should be invisible()? 
 show_missings <- function(df) {
   n <- sum(is.na(df))
   cat("Missing values: ", n, "\n", sep = "")
-  return(df)
+  return(df) # needs this for pipe above
   #invisible(df)
 }
 ```
@@ -337,7 +365,7 @@ is.infinite(x) # Inf, -Inf are TRUE
 ```
 
 ```r
-!is.infinite(x) # Inf, -Inf are FALSEm while NA, NaN are TRUE.
+!is.infinite(x) # Inf, -Inf are FALSE, while NA, NaN are TRUE.
 ```
 
 ```

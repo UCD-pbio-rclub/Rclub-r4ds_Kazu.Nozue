@@ -51,7 +51,13 @@ sum(x, na.rm = TRUE) # no type. 3
 commas(letters, collapse = "-")
 # Error in stringr::str_c(..., collapse = ", ") : 
 #  formal argument "collapse" matched by multiple actual arguments
-  
+
+commas <- function(...) stringr::str_c(..., collapse = "-")
+commas(letters, collapse = "-") # does not work
+
+commas <- function(...,collapse=", ") stringr::str_c(..., collapse = collapse)
+commas(letters, collapse = "-")
+
 #2. It’d be nice if you could supply multiple characters to the pad argument, e.g. rule("Title", pad = "-+"). Why doesn’t this currently work? How could you fix it?
 rule <- function(..., pad = "-") {
   title <- paste0(...)
@@ -71,7 +77,9 @@ xm <- mean(x)
 c(xm, mean(x, trim = 0.10))
 mean(c(x,50), trim = 0.10)
 mean(c(x,100), trim = 0.10)
-mean(c(x,100), trim = 0.3)
+# 
+mean(c(0:10,100:103), trim = 0.1)
+mean(c(0:5,100:103,6:10), trim = 0.1)
 
 #4. The default value for the method argument to cor() is c("pearson", "kendall", "spearman"). What does that mean? What value is used by default?
 ?cor
@@ -110,11 +118,11 @@ mtcars %>%
   mutate(mpg = ifelse(mpg < 20, NA, mpg)) %>% 
   show_missings() 
   
-## (MO) should be invisible()? No.
+## (MO) should be invisible()? 
 show_missings <- function(df) {
   n <- sum(is.na(df))
   cat("Missing values: ", n, "\n", sep = "")
-  return(df)
+  return(df) # needs this for pipe above
   #invisible(df)
 }
 ```
@@ -172,7 +180,7 @@ pryr::object_size(y)
 x<-c(Inf,0:8,-Inf,0.00,NA,NaN)
 is.finite(x) # Inf, -Inf, NA, NaN are FALSE
 is.infinite(x) # Inf, -Inf are TRUE
-!is.infinite(x) # Inf, -Inf are FALSEm while NA, NaN are TRUE.
+!is.infinite(x) # Inf, -Inf are FALSE, while NA, NaN are TRUE.
 
 #2. Read the source code for dplyr::near() (Hint: to see the source code, drop the ()). How does it work?
 dplyr::near

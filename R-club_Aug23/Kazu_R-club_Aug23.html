@@ -171,8 +171,14 @@ commas(letters, collapse = &quot;-&quot;)</code></pre>
 <pre><code>## Error in stringr::str_c(..., collapse = &quot;, &quot;): formal argument &quot;collapse&quot; matched by multiple actual arguments</code></pre>
 <pre class="r"><code># Error in stringr::str_c(..., collapse = &quot;, &quot;) : 
 #  formal argument &quot;collapse&quot; matched by multiple actual arguments
-  
-#2. It’d be nice if you could supply multiple characters to the pad argument, e.g. rule(&quot;Title&quot;, pad = &quot;-+&quot;). Why doesn’t this currently work? How could you fix it?
+
+commas &lt;- function(...) stringr::str_c(..., collapse = &quot;-&quot;)
+commas(letters, collapse = &quot;-&quot;) # does not work</code></pre>
+<pre><code>## Error in stringr::str_c(..., collapse = &quot;-&quot;): formal argument &quot;collapse&quot; matched by multiple actual arguments</code></pre>
+<pre class="r"><code>commas &lt;- function(...,collapse=&quot;, &quot;) stringr::str_c(..., collapse = collapse)
+commas(letters, collapse = &quot;-&quot;)</code></pre>
+<pre><code>## [1] &quot;a-b-c-d-e-f-g-h-i-j-k-l-m-n-o-p-q-r-s-t-u-v-w-x-y-z&quot;</code></pre>
+<pre class="r"><code>#2. It’d be nice if you could supply multiple characters to the pad argument, e.g. rule(&quot;Title&quot;, pad = &quot;-+&quot;). Why doesn’t this currently work? How could you fix it?
 rule &lt;- function(..., pad = &quot;-&quot;) {
   title &lt;- paste0(...)
   width &lt;- getOption(&quot;width&quot;) - nchar(title) - 5
@@ -182,7 +188,8 @@ rule(&quot;Title&quot;, pad = &quot;-+&quot;)</code></pre>
 <pre><code>## Title -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</code></pre>
 <pre class="r"><code>rule(&quot;Title&quot;, pad = &quot;-+*&quot;) </code></pre>
 <pre><code>## Title -+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*-+*</code></pre>
-<pre class="r"><code># what does author want me to do?
+<pre class="r"><code># what does author want me to do? split pad into each character?
+
 
 #3. What does the trim argument to mean() do? When might you use it?
 ?mean
@@ -195,8 +202,11 @@ c(xm, mean(x, trim = 0.10))</code></pre>
 <pre><code>## [1] 9.545455</code></pre>
 <pre class="r"><code>mean(c(x,100), trim = 0.10)</code></pre>
 <pre><code>## [1] 9.545455</code></pre>
-<pre class="r"><code>mean(c(x,100), trim = 0.3)</code></pre>
-<pre><code>## [1] 6</code></pre>
+<pre class="r"><code># 
+mean(c(0:10,100:103), trim = 0.1)</code></pre>
+<pre><code>## [1] 27.53846</code></pre>
+<pre class="r"><code>mean(c(0:5,100:103,6:10), trim = 0.1)</code></pre>
+<pre><code>## [1] 27.53846</code></pre>
 <pre class="r"><code>#4. The default value for the method argument to cor() is c(&quot;pearson&quot;, &quot;kendall&quot;, &quot;spearman&quot;). What does that mean? What value is used by default?
 ?cor
 # choices of methods 
@@ -239,11 +249,11 @@ mtcars %&gt;%
   show_missings() </code></pre>
 <pre><code>## Missing values: 0
 ## Missing values: 18</code></pre>
-<pre class="r"><code>## (MO) should be invisible()? No.
+<pre class="r"><code>## (MO) should be invisible()? 
 show_missings &lt;- function(df) {
   n &lt;- sum(is.na(df))
   cat(&quot;Missing values: &quot;, n, &quot;\n&quot;, sep = &quot;&quot;)
-  return(df)
+  return(df) # needs this for pipe above
   #invisible(df)
 }</code></pre>
 </div>
@@ -317,7 +327,7 @@ is.finite(x) # Inf, -Inf, NA, NaN are FALSE</code></pre>
 <pre class="r"><code>is.infinite(x) # Inf, -Inf are TRUE</code></pre>
 <pre><code>##  [1]  TRUE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE  TRUE
 ## [12] FALSE FALSE FALSE</code></pre>
-<pre class="r"><code>!is.infinite(x) # Inf, -Inf are FALSEm while NA, NaN are TRUE.</code></pre>
+<pre class="r"><code>!is.infinite(x) # Inf, -Inf are FALSE, while NA, NaN are TRUE.</code></pre>
 <pre><code>##  [1] FALSE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE FALSE
 ## [12]  TRUE  TRUE  TRUE</code></pre>
 <pre class="r"><code>#2. Read the source code for dplyr::near() (Hint: to see the source code, drop the ()). How does it work?
