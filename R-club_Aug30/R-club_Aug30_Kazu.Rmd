@@ -93,7 +93,7 @@ y<-sample(10,10)
 y
 value_last(y)
 #4.2 The elements at even numbered positions.
-pos_even<-function(x) {x[x %% 2 ==0]}
+pos_even<-function(x) {x[x %% 2 ==0]} # this is not position!
 y
 pos_even(y)
 
@@ -153,8 +153,8 @@ typeof(tb)
 #> [1] "list"
 attributes(tb)
 tb[[1]]
-names(tb)
-
+tb[1]
+tb[1,]
 
 ```
 # 20.6 Attributes
@@ -190,6 +190,9 @@ attributes(tb)
 hms::hms(3600) # 01:00:00
 hms::hms
 ?hms
+typeof(hms::hms(3600))
+attributes(hms::hms(3600))
+
 #2. Try and make a tibble that has columns with different lengths. What happens?
 tibble(a=1:10,b=letters[1:5]) 
 # Error: Variables must be length 1 or 10.
