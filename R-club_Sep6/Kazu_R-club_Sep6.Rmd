@@ -1,0 +1,364 @@
+---
+title: "Kazu_R-club_Aug30"
+author: "Kazu"
+date: "9/6/2017"
+output: 
+  html_document: 
+    keep_md: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(stringr)
+```
+# 21 Iteration
+## 21.2 For loops
+```{r}
+df <- tibble(
+  a = rnorm(10),
+  b = rnorm(10),
+  c = rnorm(10),
+  d = rnorm(10)
+)
+# loop
+output <- vector("double", ncol(df))  # 1. output
+for (i in seq_along(df)) {            # 2. sequence
+  output[[i]] <- median(df[[i]])      # 3. body
+}
+output
+## Note: "You might not have seen seq_along() before. It’s a safe version of the familiar 1:length(l), with an important difference: if you have a zero-length vector, seq_along() does the right thing:
+y <- vector("double", 0)
+seq_along(y)
+#> integer(0)
+1:length(y)
+#> [1] 1 0"
+
+# My Question: what is the difference of 
+df[1]
+df[[1]]
+df[,1]
+# why double blackets? in the body above? df[[i]] and output[[i]]
+
+```
+# 21.2.1 Exercises
+```{r}
+#1. Write for loops to:
+## Compute the mean of every column in mtcars.
+mtcars
+output.mtcars.mean<-vector()
+for(i in seq_along(mtcars)) {
+  output.mtcars.mean[i]<-mean(mtcars[,i])
+}
+output.mtcars.mean
+typeof(output.mtcars.mean)
+# 2nd version
+output.mtcars.mean<-vector("double",ncol(mtcars)) # why do I need to specify?
+for(i in seq_along(mtcars)) {
+  output.mtcars.mean[i]<-mean(mtcars[,i])
+}
+output.mtcars.mean
+typeof(output.mtcars.mean)
+# v3
+output.mtcars.mean<-vector("double",ncol(mtcars)) # why do I need to specify?
+for(i in seq_along(mtcars)) {
+  output.mtcars.mean[[i]]<-mean(mtcars[,i])
+}
+output.mtcars.mean
+typeof(output.mtcars.mean)
+
+## Determine the type of each column in nycflights13::flights.
+nycflights13::flights
+type.flights.col<-vector()
+for(i in seq_along(nycflights13::flights)) {
+  type.flights.col[i]<-typeof(nycflights13::flights[[i]])
+}
+type.flights.col
+str(nycflights13::flights) # this is different from type.flights.col at the last time_hour column
+
+## Compute the number of unique values in each column of iris.
+iris
+num.unique<-vector()
+for(i in seq_along(iris)) {
+  num.unique[i]<-length(unique(iris[,i]))
+}
+num.unique
+## Generate 10 random normals for each of μ=−10 , 0 , 10 , and 100 .
+mu<-c(-10,0,10,100)
+normals<-matrix(nrow=10,ncol=length(mu))
+colnames(normals)<-mu
+for(i in seq_along(mu)) {
+normals[,i]<-rnorm(10,mean=mu[i])
+}
+normals
+
+# Think about the output, sequence, and body before you start writing the loop.
+
+#2. Eliminate the for loop in each of the following examples by taking advantage of an existing function that works with vectors
+## problem 1
+out <- ""
+for (x in letters) {
+  out <- stringr::str_c(out, x)
+}
+## my answer
+stringr::str_c(letters,collapse = "")
+## problem2
+x <- sample(100)
+sd <- 0
+for (i in seq_along(x)) {
+  sd <- sd + (x[i] - mean(x)) ^ 2
+}
+sd <- sqrt(sd / (length(x) - 1))
+sd
+## my answer
+x
+sqrt(sum((x - mean(x))^2)/(length(x) -1)) # same as sd
+
+## problem 3
+x <- runif(100)
+out <- vector("numeric", length(x))
+out[1] <- x[1]
+for (i in 2:length(x)) {
+  out[i] <- out[i - 1] + x[i]
+}
+out
+## my answer
+identical(cumsum(x) ,out)
+
+#3. Combine your function writing and for loop skills:
+##1. Write a for loop that prints() the lyrics to the children’s song “Alice the camel”.
+##2. Convert the nursery rhyme “ten in the bed” to a function. Generalise it to any number of people in any sleeping structure.
+##3. Convert the nursery rhyme “ten in the bed” to a function. Generalise it to any number of people in any sleeping structure.
+
+#4. It’s common to see for loops that don’t preallocate the output and instead increase the length of a vector at each step:
+output <- vector("integer", 0)
+for (i in seq_along(x)) {
+  output <- c(output, lengths(x[[i]]))
+}
+output
+## How does this affect performance? Design and execute an experiment.
+
+```
+# 21.3 For loop variations
+
+# 21.3.5 Exercises
+```{r error=TRUE}
+#1. Imagine you have a directory full of CSV files that you want to read in. You have their paths in a vector, files <- dir("data/", pattern = "\\.csv$", full.names = TRUE), and now want to read each one with read_csv(). Write the for loop that will load them into a single data frame.
+files <- dir("data/", pattern = "\\.csv$", full.names = TRUE)
+# if all sheets have the same column numbers
+temp<-load(files[1])
+for(x in files[-1]) {
+  temp2<-load(x)
+  temp<-rbind(temp,temp2)
+}
+temp
+# if not. store all in list and unlist them?
+merged.data<-list()
+for(x in files) {
+  merged.data[[x]]<-load(x)
+}
+## convert list into data.frame
+df <- enframe(merged.data) # tibble
+
+#2. What happens if you use for (nm in names(x)) and x has no names? What if only some of the elements are named? What if the names are not unique?
+# x <- runif(100)
+# names(x)
+# out <- vector("numeric", length(x))
+# out[1] <- x[1]
+# for (nm in names(x)[-1]) {
+#   out[nm] <- out[nm - 1] + x[i]
+# }
+# out
+
+
+#3. Write a function that prints the mean of each numeric column in a data frame, along with its name. For example, show_mean(iris) would print:
+show_mean(iris)
+#> Sepal.Length: 5.84
+#> Sepal.Width:  3.06
+#> Petal.Length: 3.76
+#> Petal.Width:  1.20
+
+show_mean<-function(df) {
+  for(x in colnames(df)) {
+    if(is.numeric(df[[x]])==TRUE) { # only numeric column
+      temp<-round(mean(df[[x]]),2)
+      cat(paste(x,": ",sep=""))
+      cat(temp)
+      cat("\n")
+  } else {next}
+  }
+}
+show_mean(iris)
+
+# (Extra challenge: what function did I use to make sure that the numbers lined up nicely, even though the variable names had different lengths?)
+
+#4. What does this code do? How does it work?
+mtcars.original<-mtcars
+trans <- list( 
+  disp = function(x) x * 0.0163871,
+  am = function(x) {
+    factor(x, labels = c("auto", "manual"))
+  }
+)
+for (var in names(trans)) {
+  mtcars[[var]] <- trans[[var]](mtcars[[var]])
+}
+
+# answer
+#diff(mtcars.original,mtcars)
+mtcars.original
+mtcars
+# transform "disp" column nad "am" column
+# two separate functions are used according to two different objects ("disp" or "am"). Input "x" is difined within parenthesis.
+
+```
+# 21.4 For loops vs. functionals
+```{r}
+df <- tibble(
+  a = rnorm(10),
+  b = rnorm(10),
+  c = rnorm(10),
+  d = rnorm(10)
+)
+
+```
+
+# 21.4.1 Exercises
+```{r error=TRUE}
+#1. Read the documentation for apply(). In the 2d case, what two for loops does it generalise?
+?apply
+
+#2. Adapt col_summary() so that it only applies to numeric columns You might want to start with an is_numeric() function that returns a logical vector that has a TRUE corresponding to each numeric column.
+col_summary <- function(df, fun) {
+  out <- vector("double", length(df))
+  for (i in seq_along(df)) {
+    out[i] <- fun(df[[i]])
+  }
+  out
+}
+col_summary(df, median) # original
+# answer
+df2 <- tibble(
+  a = rnorm(10),
+  x = letters[1:10],
+  b = rnorm(10),
+  c = rnorm(10),
+  d = rnorm(10)
+)
+# 
+col_summary2 <- function(y, fun) {
+  out <- vector()
+    for (i in seq_along(y)) {
+      if(is_numeric(y[[i]])==TRUE) {
+      out[[i]] <- fun(y[[i]])
+      names(out[i]) <- colnames(y)[i] # does not work
+      }  else {next}
+    }
+  out
+}
+col_summary2(df2,median) # incomplete
+
+```
+
+# 21.5 The map functions
+
+```{r error=TRUE}
+map_dbl(df, mean)
+map_dbl(df, median)
+map_dbl(df, sd)
+df %>% map_dbl(mean)
+
+```
+# 21.5.1 Shortcuts
+```{r error=TRUE}
+models <- mtcars %>% 
+  split(.$cyl) %>% 
+  map(function(df) lm(mpg ~ wt, data = df))
+models
+# shortcut "."
+models <- mtcars %>% 
+  split(.$cyl) %>% 
+  map(~lm(mpg ~ wt, data = .))
+models
+# 
+models %>% 
+  map(summary) %>% 
+  map_dbl(~.$r.squared) 
+# cf
+test$`4`$r.squared
+# extracting named components is a common operation
+models %>% 
+  map(summary) %>% 
+  map_dbl("r.squared")
+# You can also use an integer to select elements by position:
+x <- list(list(1, 2, 3), list(4, 5, 6), list(7, 8, 9))
+x %>% map_dbl(2)
+```
+# 21.5.2 Base R
+```{r error=TRUE}
+#lapply() is basically identical to map(), except that map() is consistent with all the other functions in purrr, and you can use the shortcuts for .f.
+
+#Base sapply() is a wrapper around lapply() that automatically simplifies the output. This is useful for interactive work but is problematic in a function because you never know what sort of output you’ll get:
+x1 <- list(
+  c(0.27, 0.37, 0.57, 0.91, 0.20),
+  c(0.90, 0.94, 0.66, 0.63, 0.06), 
+  c(0.21, 0.18, 0.69, 0.38, 0.77)
+)
+x2 <- list(
+  c(0.50, 0.72, 0.99, 0.38, 0.78), 
+  c(0.93, 0.21, 0.65, 0.13, 0.27), 
+  c(0.39, 0.01, 0.38, 0.87, 0.34)
+)
+
+threshold <- function(x, cutoff = 0.8) x[x > cutoff]
+x1 %>% sapply(threshold) %>% str()
+#> List of 3
+#>  $ : num 0.91
+#>  $ : num [1:2] 0.9 0.94
+#>  $ : num(0)
+x2 %>% sapply(threshold) %>% str()
+#>  num [1:3] 0.99 0.93 0.87
+
+# vapply() is a safe alternative to sapply() because you supply an additional argument that defines the type. The only problem with vapply() is that it’s a lot of typing: vapply(df, is.numeric, logical(1)) is equivalent to map_lgl(df, is.numeric). One advantage of vapply() over purrr’s map functions is that it can also produce matrices — the map functions only ever produce vectors.
+
+# I focus on purrr functions here because they have more consistent names and arguments, helpful shortcuts, and in the future will provide easy parallelism and progress bars.
+```
+# 21.5.3 Exercises
+```{r error=TRUE}
+#1. Write code that uses one of the map functions to:
+## 1. Compute the mean of every column in mtcars.
+mtcars %>% map_dbl(mean)
+## 2. Determine the type of each column in nycflights13::flights.
+nycflights13::flights %>% map_chr(typeof)
+## 3. Compute the number of unique values in each column of iris.
+iris %>% map_int(function(x) length(unique(x)))
+## 4.Generate 10 random normals for each of μ=−10 , 0 , 10 , and 100 .
+mu<-c(-10,0,10,100)
+mu %>% map(function(x) rnorm(10,x))
+
+#2. How can you create a single vector that for each column in a data frame indicates whether or not it’s a factor?
+str(df2)
+df3<-df2
+df3$x<-as.factor(df3$x)
+attributes(str(df3))
+
+
+
+#3. What happens when you use the map functions on vectors that aren’t lists? What does map(1:5, runif) do? Why?
+
+#4. What does map(-2:2, rnorm, n = 5) do? Why? What does map_dbl(-2:2, rnorm, n = 5) do? Why?
+
+#5. Rewrite map(x, function(df) lm(mpg ~ wt, data = df)) to eliminate the anonymous function.
+
+
+
+
+```
+# 21.6 Dealing with failure
+```{r}
+
+
+
+
+
+```
