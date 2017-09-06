@@ -39,6 +39,12 @@ df[1]
 df[[1]]
 df[,1]
 # why double blackets? in the body above? df[[i]] and output[[i]]
+# J's answer
+x1<-list(c(1,2),c(3,4))
+x1[1]
+x1[[1]]
+typeof(x1[1]) # list
+typeof(x1[[1]]) # double
 
 ```
 # 21.2.1 Exercises
@@ -61,6 +67,7 @@ output.mtcars.mean
 typeof(output.mtcars.mean)
 # v3
 output.mtcars.mean<-vector("double",ncol(mtcars)) # why do I need to specify?
+# to calculate more efficiently (J)
 for(i in seq_along(mtcars)) {
   output.mtcars.mean[[i]]<-mean(mtcars[,i])
 }
@@ -137,6 +144,7 @@ for (i in seq_along(x)) {
 }
 output
 ## How does this affect performance? Design and execute an experiment.
+# I skipped. See Julin or Stacey's answers
 
 ```
 # 21.3 For loop variations
@@ -146,16 +154,16 @@ output
 #1. Imagine you have a directory full of CSV files that you want to read in. You have their paths in a vector, files <- dir("data/", pattern = "\\.csv$", full.names = TRUE), and now want to read each one with read_csv(). Write the for loop that will load them into a single data frame.
 files <- dir("data/", pattern = "\\.csv$", full.names = TRUE)
 # if all sheets have the same column numbers
-temp<-load(files[1])
+temp<-read_csv(files[1])
 for(x in files[-1]) {
-  temp2<-load(x)
+  temp2<-read_csv(x)
   temp<-rbind(temp,temp2)
 }
 temp
 # if not. store all in list and unlist them?
 merged.data<-list()
 for(x in files) {
-  merged.data[[x]]<-load(x)
+  merged.data[[x]]<-read_csv(x)
 }
 ## convert list into data.frame
 df <- enframe(merged.data) # tibble
