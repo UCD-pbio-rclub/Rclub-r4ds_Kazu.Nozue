@@ -472,7 +472,6 @@ param <- list(
   list(sd = 5), 
   list(lambda = 10)
 )
-<<<<<<< HEAD
 #
 invoke_map(f, param, n = 5) %>% str()
 #
