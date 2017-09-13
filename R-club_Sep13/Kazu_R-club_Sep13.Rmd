@@ -328,8 +328,11 @@ x1 %>% sapply(threshold) %>% str()
 x2 %>% sapply(threshold) %>% str()
 #>  num [1:3] 0.99 0.93 0.87
 
+<<<<<<< HEAD
 map(x2, threshold) %>% str()
 
+=======
+>>>>>>> 04080c36da2bc39b0a082e5c9c17f2fd7591f85a
 # vapply() is a safe alternative to sapply() because you supply an additional argument that defines the type. The only problem with vapply() is that it’s a lot of typing: vapply(df, is.numeric, logical(1)) is equivalent to map_lgl(df, is.numeric). One advantage of vapply() over purrr’s map functions is that it can also produce matrices — the map functions only ever produce vectors.
 
 # I focus on purrr functions here because they have more consistent names and arguments, helpful shortcuts, and in the future will provide easy parallelism and progress bars.
@@ -350,6 +353,8 @@ iris %>% map_int(function(x) length(unique(x)))
 mu<-c(-10,0,10,100)
 mu %>% map(function(x) rnorm(10,x)) # or
 mu %>% map(function(x) rnorm(10,mean=x))
+# 
+map(mu, rnorm,n=10) # simplified one
 
 #2. How can you create a single vector that for each column in a data frame indicates whether or not it’s a factor?
 df2 <- tibble(
@@ -381,14 +386,13 @@ mtcars %>% map(function(df) lm(mpg ~ wt, data = df)) # original
 
 mtcars %>% map(~lm(mpg ~ wt, data =.)) # does not work
 mtcars %>% 
-  split(.$cyl) %>% 
-  map(~lm(mpg ~ wt, data = .)) # works.. becasue split(,.$cyl) gave list object (map() needs list)
+  split(.$cyl) %>%   map(~lm(mpg ~ wt, data = .)) # works.. becasue split(,.$cyl) gave list object (map() needs list)
 #
 mtcars %>% map(~lm(mpg ~ wt, data = .)) # does not work.. becasue split(,.$cyl) gave list object (map() needs 
 list(mtcars) %>% map(~lm(mpg ~ wt, data = .)) # does  work.. becasue split(,.$cyl) gave list object (map() needs 
 
-mtcars %>% map(~lm(mpg ~ wt, data = .)) # does not work.. becasue split(,.$cyl) gave list object (map() needs 
-
+mtcars %>% map(~lm(mpg ~ wt, data = .)) # does not work.. becasue split(,.$cyl) gave list object (map() needs list)
+map(~lm(mpg ~ wt, data = .)) # works..
 ```
 # 21.6 Dealing with failure
 ```{r error=TRUE}
@@ -468,6 +472,7 @@ param <- list(
   list(sd = 5), 
   list(lambda = 10)
 )
+<<<<<<< HEAD
 #
 invoke_map(f, param, n = 5) %>% str()
 #
@@ -489,5 +494,7 @@ x <- list(1, "a", 3)
 
 x %>% 
   walk(print)
+=======
+>>>>>>> 04080c36da2bc39b0a082e5c9c17f2fd7591f85a
 
 ```
