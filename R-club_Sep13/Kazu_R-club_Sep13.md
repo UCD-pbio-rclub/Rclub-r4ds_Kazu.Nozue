@@ -3,904 +3,6 @@ Kazu
 9/6/2017  
 
 
-# 21 Iteration
-## 21.2 For loops
-
-```r
-df <- tibble(
-  a = rnorm(10),
-  b = rnorm(10),
-  c = rnorm(10),
-  d = rnorm(10)
-)
-# loop
-output <- vector("double", ncol(df))  # 1. output
-for (i in seq_along(df)) {            # 2. sequence
-  output[[i]] <- median(df[[i]])      # 3. body
-}
-output
-```
-
-```
-## [1] -0.42578006 -0.09987019 -0.56020767  0.61725058
-```
-
-```r
-## Note: "You might not have seen seq_along() before. It’s a safe version of the familiar 1:length(l), with an important difference: if you have a zero-length vector, seq_along() does the right thing:
-y <- vector("double", 0)
-seq_along(y)
-```
-
-```
-## integer(0)
-```
-
-```r
-#> integer(0)
-1:length(y)
-```
-
-```
-## [1] 1 0
-```
-
-```r
-#> [1] 1 0"
-
-# My Question: what is the difference of 
-df[1]
-```
-
-```
-## # A tibble: 10 × 1
-##             a
-##         <dbl>
-## 1  -0.9981031
-## 2  -0.5612054
-## 3  -0.2058156
-## 4  -0.8175146
-## 5  -0.8843192
-## 6  -0.1211837
-## 7   0.2343327
-## 8  -0.2903547
-## 9  -1.5583831
-## 10  1.0605407
-```
-
-```r
-df[[1]]
-```
-
-```
-##  [1] -0.9981031 -0.5612054 -0.2058156 -0.8175146 -0.8843192 -0.1211837
-##  [7]  0.2343327 -0.2903547 -1.5583831  1.0605407
-```
-
-```r
-df[,1]
-```
-
-```
-## # A tibble: 10 × 1
-##             a
-##         <dbl>
-## 1  -0.9981031
-## 2  -0.5612054
-## 3  -0.2058156
-## 4  -0.8175146
-## 5  -0.8843192
-## 6  -0.1211837
-## 7   0.2343327
-## 8  -0.2903547
-## 9  -1.5583831
-## 10  1.0605407
-```
-
-```r
-# why double blackets? in the body above? df[[i]] and output[[i]]
-# J's answer
-x1<-list(c(1,2),c(3,4))
-x1[1]
-```
-
-```
-## [[1]]
-## [1] 1 2
-```
-
-```r
-x1[[1]]
-```
-
-```
-## [1] 1 2
-```
-
-```r
-typeof(x1[1]) # list
-```
-
-```
-## [1] "list"
-```
-
-```r
-typeof(x1[[1]]) # double
-```
-
-```
-## [1] "double"
-```
-# 21.2.1 Exercises
-
-```r
-#1. Write for loops to:
-## Compute the mean of every column in mtcars.
-mtcars
-```
-
-```
-##                      mpg cyl  disp  hp drat    wt  qsec vs am gear carb
-## Mazda RX4           21.0   6 160.0 110 3.90 2.620 16.46  0  1    4    4
-## Mazda RX4 Wag       21.0   6 160.0 110 3.90 2.875 17.02  0  1    4    4
-## Datsun 710          22.8   4 108.0  93 3.85 2.320 18.61  1  1    4    1
-## Hornet 4 Drive      21.4   6 258.0 110 3.08 3.215 19.44  1  0    3    1
-## Hornet Sportabout   18.7   8 360.0 175 3.15 3.440 17.02  0  0    3    2
-## Valiant             18.1   6 225.0 105 2.76 3.460 20.22  1  0    3    1
-## Duster 360          14.3   8 360.0 245 3.21 3.570 15.84  0  0    3    4
-## Merc 240D           24.4   4 146.7  62 3.69 3.190 20.00  1  0    4    2
-## Merc 230            22.8   4 140.8  95 3.92 3.150 22.90  1  0    4    2
-## Merc 280            19.2   6 167.6 123 3.92 3.440 18.30  1  0    4    4
-## Merc 280C           17.8   6 167.6 123 3.92 3.440 18.90  1  0    4    4
-## Merc 450SE          16.4   8 275.8 180 3.07 4.070 17.40  0  0    3    3
-## Merc 450SL          17.3   8 275.8 180 3.07 3.730 17.60  0  0    3    3
-## Merc 450SLC         15.2   8 275.8 180 3.07 3.780 18.00  0  0    3    3
-## Cadillac Fleetwood  10.4   8 472.0 205 2.93 5.250 17.98  0  0    3    4
-## Lincoln Continental 10.4   8 460.0 215 3.00 5.424 17.82  0  0    3    4
-## Chrysler Imperial   14.7   8 440.0 230 3.23 5.345 17.42  0  0    3    4
-## Fiat 128            32.4   4  78.7  66 4.08 2.200 19.47  1  1    4    1
-## Honda Civic         30.4   4  75.7  52 4.93 1.615 18.52  1  1    4    2
-## Toyota Corolla      33.9   4  71.1  65 4.22 1.835 19.90  1  1    4    1
-## Toyota Corona       21.5   4 120.1  97 3.70 2.465 20.01  1  0    3    1
-## Dodge Challenger    15.5   8 318.0 150 2.76 3.520 16.87  0  0    3    2
-## AMC Javelin         15.2   8 304.0 150 3.15 3.435 17.30  0  0    3    2
-## Camaro Z28          13.3   8 350.0 245 3.73 3.840 15.41  0  0    3    4
-## Pontiac Firebird    19.2   8 400.0 175 3.08 3.845 17.05  0  0    3    2
-## Fiat X1-9           27.3   4  79.0  66 4.08 1.935 18.90  1  1    4    1
-## Porsche 914-2       26.0   4 120.3  91 4.43 2.140 16.70  0  1    5    2
-## Lotus Europa        30.4   4  95.1 113 3.77 1.513 16.90  1  1    5    2
-## Ford Pantera L      15.8   8 351.0 264 4.22 3.170 14.50  0  1    5    4
-## Ferrari Dino        19.7   6 145.0 175 3.62 2.770 15.50  0  1    5    6
-## Maserati Bora       15.0   8 301.0 335 3.54 3.570 14.60  0  1    5    8
-## Volvo 142E          21.4   4 121.0 109 4.11 2.780 18.60  1  1    4    2
-```
-
-```r
-output.mtcars.mean<-vector()
-for(i in seq_along(mtcars)) {
-  output.mtcars.mean[i]<-mean(mtcars[,i])
-}
-output.mtcars.mean
-```
-
-```
-##  [1]  20.090625   6.187500 230.721875 146.687500   3.596563   3.217250
-##  [7]  17.848750   0.437500   0.406250   3.687500   2.812500
-```
-
-```r
-typeof(output.mtcars.mean)
-```
-
-```
-## [1] "double"
-```
-
-```r
-# 2nd version
-output.mtcars.mean<-vector("double",ncol(mtcars)) # why do I need to specify?
-for(i in seq_along(mtcars)) {
-  output.mtcars.mean[i]<-mean(mtcars[,i])
-}
-output.mtcars.mean
-```
-
-```
-##  [1]  20.090625   6.187500 230.721875 146.687500   3.596563   3.217250
-##  [7]  17.848750   0.437500   0.406250   3.687500   2.812500
-```
-
-```r
-typeof(output.mtcars.mean)
-```
-
-```
-## [1] "double"
-```
-
-```r
-# v3
-output.mtcars.mean<-vector("double",ncol(mtcars)) # why do I need to specify?
-# to calculate more efficiently (J)
-for(i in seq_along(mtcars)) {
-  output.mtcars.mean[[i]]<-mean(mtcars[,i])
-}
-output.mtcars.mean
-```
-
-```
-##  [1]  20.090625   6.187500 230.721875 146.687500   3.596563   3.217250
-##  [7]  17.848750   0.437500   0.406250   3.687500   2.812500
-```
-
-```r
-typeof(output.mtcars.mean)
-```
-
-```
-## [1] "double"
-```
-
-```r
-## Determine the type of each column in nycflights13::flights.
-nycflights13::flights
-```
-
-```
-## # A tibble: 336,776 × 19
-##     year month   day dep_time sched_dep_time dep_delay arr_time
-##    <int> <int> <int>    <int>          <int>     <dbl>    <int>
-## 1   2013     1     1      517            515         2      830
-## 2   2013     1     1      533            529         4      850
-## 3   2013     1     1      542            540         2      923
-## 4   2013     1     1      544            545        -1     1004
-## 5   2013     1     1      554            600        -6      812
-## 6   2013     1     1      554            558        -4      740
-## 7   2013     1     1      555            600        -5      913
-## 8   2013     1     1      557            600        -3      709
-## 9   2013     1     1      557            600        -3      838
-## 10  2013     1     1      558            600        -2      753
-## # ... with 336,766 more rows, and 12 more variables: sched_arr_time <int>,
-## #   arr_delay <dbl>, carrier <chr>, flight <int>, tailnum <chr>,
-## #   origin <chr>, dest <chr>, air_time <dbl>, distance <dbl>, hour <dbl>,
-## #   minute <dbl>, time_hour <dttm>
-```
-
-```r
-type.flights.col<-vector()
-for(i in seq_along(nycflights13::flights)) {
-  type.flights.col[i]<-typeof(nycflights13::flights[[i]])
-}
-type.flights.col
-```
-
-```
-##  [1] "integer"   "integer"   "integer"   "integer"   "integer"  
-##  [6] "double"    "integer"   "integer"   "double"    "character"
-## [11] "integer"   "character" "character" "character" "double"   
-## [16] "double"    "double"    "double"    "double"
-```
-
-```r
-str(nycflights13::flights) # this is different from type.flights.col at the last time_hour column
-```
-
-```
-## Classes 'tbl_df', 'tbl' and 'data.frame':	336776 obs. of  19 variables:
-##  $ year          : int  2013 2013 2013 2013 2013 2013 2013 2013 2013 2013 ...
-##  $ month         : int  1 1 1 1 1 1 1 1 1 1 ...
-##  $ day           : int  1 1 1 1 1 1 1 1 1 1 ...
-##  $ dep_time      : int  517 533 542 544 554 554 555 557 557 558 ...
-##  $ sched_dep_time: int  515 529 540 545 600 558 600 600 600 600 ...
-##  $ dep_delay     : num  2 4 2 -1 -6 -4 -5 -3 -3 -2 ...
-##  $ arr_time      : int  830 850 923 1004 812 740 913 709 838 753 ...
-##  $ sched_arr_time: int  819 830 850 1022 837 728 854 723 846 745 ...
-##  $ arr_delay     : num  11 20 33 -18 -25 12 19 -14 -8 8 ...
-##  $ carrier       : chr  "UA" "UA" "AA" "B6" ...
-##  $ flight        : int  1545 1714 1141 725 461 1696 507 5708 79 301 ...
-##  $ tailnum       : chr  "N14228" "N24211" "N619AA" "N804JB" ...
-##  $ origin        : chr  "EWR" "LGA" "JFK" "JFK" ...
-##  $ dest          : chr  "IAH" "IAH" "MIA" "BQN" ...
-##  $ air_time      : num  227 227 160 183 116 150 158 53 140 138 ...
-##  $ distance      : num  1400 1416 1089 1576 762 ...
-##  $ hour          : num  5 5 5 5 6 5 6 6 6 6 ...
-##  $ minute        : num  15 29 40 45 0 58 0 0 0 0 ...
-##  $ time_hour     : POSIXct, format: "2013-01-01 05:00:00" "2013-01-01 05:00:00" ...
-```
-
-```r
-## Compute the number of unique values in each column of iris.
-iris
-```
-
-```
-##     Sepal.Length Sepal.Width Petal.Length Petal.Width    Species
-## 1            5.1         3.5          1.4         0.2     setosa
-## 2            4.9         3.0          1.4         0.2     setosa
-## 3            4.7         3.2          1.3         0.2     setosa
-## 4            4.6         3.1          1.5         0.2     setosa
-## 5            5.0         3.6          1.4         0.2     setosa
-## 6            5.4         3.9          1.7         0.4     setosa
-## 7            4.6         3.4          1.4         0.3     setosa
-## 8            5.0         3.4          1.5         0.2     setosa
-## 9            4.4         2.9          1.4         0.2     setosa
-## 10           4.9         3.1          1.5         0.1     setosa
-## 11           5.4         3.7          1.5         0.2     setosa
-## 12           4.8         3.4          1.6         0.2     setosa
-## 13           4.8         3.0          1.4         0.1     setosa
-## 14           4.3         3.0          1.1         0.1     setosa
-## 15           5.8         4.0          1.2         0.2     setosa
-## 16           5.7         4.4          1.5         0.4     setosa
-## 17           5.4         3.9          1.3         0.4     setosa
-## 18           5.1         3.5          1.4         0.3     setosa
-## 19           5.7         3.8          1.7         0.3     setosa
-## 20           5.1         3.8          1.5         0.3     setosa
-## 21           5.4         3.4          1.7         0.2     setosa
-## 22           5.1         3.7          1.5         0.4     setosa
-## 23           4.6         3.6          1.0         0.2     setosa
-## 24           5.1         3.3          1.7         0.5     setosa
-## 25           4.8         3.4          1.9         0.2     setosa
-## 26           5.0         3.0          1.6         0.2     setosa
-## 27           5.0         3.4          1.6         0.4     setosa
-## 28           5.2         3.5          1.5         0.2     setosa
-## 29           5.2         3.4          1.4         0.2     setosa
-## 30           4.7         3.2          1.6         0.2     setosa
-## 31           4.8         3.1          1.6         0.2     setosa
-## 32           5.4         3.4          1.5         0.4     setosa
-## 33           5.2         4.1          1.5         0.1     setosa
-## 34           5.5         4.2          1.4         0.2     setosa
-## 35           4.9         3.1          1.5         0.2     setosa
-## 36           5.0         3.2          1.2         0.2     setosa
-## 37           5.5         3.5          1.3         0.2     setosa
-## 38           4.9         3.6          1.4         0.1     setosa
-## 39           4.4         3.0          1.3         0.2     setosa
-## 40           5.1         3.4          1.5         0.2     setosa
-## 41           5.0         3.5          1.3         0.3     setosa
-## 42           4.5         2.3          1.3         0.3     setosa
-## 43           4.4         3.2          1.3         0.2     setosa
-## 44           5.0         3.5          1.6         0.6     setosa
-## 45           5.1         3.8          1.9         0.4     setosa
-## 46           4.8         3.0          1.4         0.3     setosa
-## 47           5.1         3.8          1.6         0.2     setosa
-## 48           4.6         3.2          1.4         0.2     setosa
-## 49           5.3         3.7          1.5         0.2     setosa
-## 50           5.0         3.3          1.4         0.2     setosa
-## 51           7.0         3.2          4.7         1.4 versicolor
-## 52           6.4         3.2          4.5         1.5 versicolor
-## 53           6.9         3.1          4.9         1.5 versicolor
-## 54           5.5         2.3          4.0         1.3 versicolor
-## 55           6.5         2.8          4.6         1.5 versicolor
-## 56           5.7         2.8          4.5         1.3 versicolor
-## 57           6.3         3.3          4.7         1.6 versicolor
-## 58           4.9         2.4          3.3         1.0 versicolor
-## 59           6.6         2.9          4.6         1.3 versicolor
-## 60           5.2         2.7          3.9         1.4 versicolor
-## 61           5.0         2.0          3.5         1.0 versicolor
-## 62           5.9         3.0          4.2         1.5 versicolor
-## 63           6.0         2.2          4.0         1.0 versicolor
-## 64           6.1         2.9          4.7         1.4 versicolor
-## 65           5.6         2.9          3.6         1.3 versicolor
-## 66           6.7         3.1          4.4         1.4 versicolor
-## 67           5.6         3.0          4.5         1.5 versicolor
-## 68           5.8         2.7          4.1         1.0 versicolor
-## 69           6.2         2.2          4.5         1.5 versicolor
-## 70           5.6         2.5          3.9         1.1 versicolor
-## 71           5.9         3.2          4.8         1.8 versicolor
-## 72           6.1         2.8          4.0         1.3 versicolor
-## 73           6.3         2.5          4.9         1.5 versicolor
-## 74           6.1         2.8          4.7         1.2 versicolor
-## 75           6.4         2.9          4.3         1.3 versicolor
-## 76           6.6         3.0          4.4         1.4 versicolor
-## 77           6.8         2.8          4.8         1.4 versicolor
-## 78           6.7         3.0          5.0         1.7 versicolor
-## 79           6.0         2.9          4.5         1.5 versicolor
-## 80           5.7         2.6          3.5         1.0 versicolor
-## 81           5.5         2.4          3.8         1.1 versicolor
-## 82           5.5         2.4          3.7         1.0 versicolor
-## 83           5.8         2.7          3.9         1.2 versicolor
-## 84           6.0         2.7          5.1         1.6 versicolor
-## 85           5.4         3.0          4.5         1.5 versicolor
-## 86           6.0         3.4          4.5         1.6 versicolor
-## 87           6.7         3.1          4.7         1.5 versicolor
-## 88           6.3         2.3          4.4         1.3 versicolor
-## 89           5.6         3.0          4.1         1.3 versicolor
-## 90           5.5         2.5          4.0         1.3 versicolor
-## 91           5.5         2.6          4.4         1.2 versicolor
-## 92           6.1         3.0          4.6         1.4 versicolor
-## 93           5.8         2.6          4.0         1.2 versicolor
-## 94           5.0         2.3          3.3         1.0 versicolor
-## 95           5.6         2.7          4.2         1.3 versicolor
-## 96           5.7         3.0          4.2         1.2 versicolor
-## 97           5.7         2.9          4.2         1.3 versicolor
-## 98           6.2         2.9          4.3         1.3 versicolor
-## 99           5.1         2.5          3.0         1.1 versicolor
-## 100          5.7         2.8          4.1         1.3 versicolor
-## 101          6.3         3.3          6.0         2.5  virginica
-## 102          5.8         2.7          5.1         1.9  virginica
-## 103          7.1         3.0          5.9         2.1  virginica
-## 104          6.3         2.9          5.6         1.8  virginica
-## 105          6.5         3.0          5.8         2.2  virginica
-## 106          7.6         3.0          6.6         2.1  virginica
-## 107          4.9         2.5          4.5         1.7  virginica
-## 108          7.3         2.9          6.3         1.8  virginica
-## 109          6.7         2.5          5.8         1.8  virginica
-## 110          7.2         3.6          6.1         2.5  virginica
-## 111          6.5         3.2          5.1         2.0  virginica
-## 112          6.4         2.7          5.3         1.9  virginica
-## 113          6.8         3.0          5.5         2.1  virginica
-## 114          5.7         2.5          5.0         2.0  virginica
-## 115          5.8         2.8          5.1         2.4  virginica
-## 116          6.4         3.2          5.3         2.3  virginica
-## 117          6.5         3.0          5.5         1.8  virginica
-## 118          7.7         3.8          6.7         2.2  virginica
-## 119          7.7         2.6          6.9         2.3  virginica
-## 120          6.0         2.2          5.0         1.5  virginica
-## 121          6.9         3.2          5.7         2.3  virginica
-## 122          5.6         2.8          4.9         2.0  virginica
-## 123          7.7         2.8          6.7         2.0  virginica
-## 124          6.3         2.7          4.9         1.8  virginica
-## 125          6.7         3.3          5.7         2.1  virginica
-## 126          7.2         3.2          6.0         1.8  virginica
-## 127          6.2         2.8          4.8         1.8  virginica
-## 128          6.1         3.0          4.9         1.8  virginica
-## 129          6.4         2.8          5.6         2.1  virginica
-## 130          7.2         3.0          5.8         1.6  virginica
-## 131          7.4         2.8          6.1         1.9  virginica
-## 132          7.9         3.8          6.4         2.0  virginica
-## 133          6.4         2.8          5.6         2.2  virginica
-## 134          6.3         2.8          5.1         1.5  virginica
-## 135          6.1         2.6          5.6         1.4  virginica
-## 136          7.7         3.0          6.1         2.3  virginica
-## 137          6.3         3.4          5.6         2.4  virginica
-## 138          6.4         3.1          5.5         1.8  virginica
-## 139          6.0         3.0          4.8         1.8  virginica
-## 140          6.9         3.1          5.4         2.1  virginica
-## 141          6.7         3.1          5.6         2.4  virginica
-## 142          6.9         3.1          5.1         2.3  virginica
-## 143          5.8         2.7          5.1         1.9  virginica
-## 144          6.8         3.2          5.9         2.3  virginica
-## 145          6.7         3.3          5.7         2.5  virginica
-## 146          6.7         3.0          5.2         2.3  virginica
-## 147          6.3         2.5          5.0         1.9  virginica
-## 148          6.5         3.0          5.2         2.0  virginica
-## 149          6.2         3.4          5.4         2.3  virginica
-## 150          5.9         3.0          5.1         1.8  virginica
-```
-
-```r
-num.unique<-vector()
-for(i in seq_along(iris)) {
-  num.unique[i]<-length(unique(iris[,i]))
-}
-num.unique
-```
-
-```
-## [1] 35 23 43 22  3
-```
-
-```r
-## Generate 10 random normals for each of μ=−10 , 0 , 10 , and 100 .
-mu<-c(-10,0,10,100)
-normals<-matrix(nrow=10,ncol=length(mu))
-colnames(normals)<-mu
-for(i in seq_along(mu)) {
-normals[,i]<-rnorm(10,mean=mu[i])
-}
-normals
-```
-
-```
-##              -10           0        10       100
-##  [1,] -12.112177 -1.25793153 10.586749  99.20732
-##  [2,]  -9.864666 -0.24600398 10.202329 101.47637
-##  [3,]  -9.378215  1.17726452 10.331434  99.63414
-##  [4,] -11.359508  0.84269786 11.152601  98.74512
-##  [5,]  -8.813454 -0.07412346  9.249086 102.41520
-##  [6,] -11.846753  1.03128343  9.392074  99.23161
-##  [7,]  -9.247854  1.93963997  9.488683 101.01472
-##  [8,]  -9.097285  1.42917477 10.927687  97.51010
-##  [9,] -10.671218 -0.21770339  6.450667  98.82334
-## [10,] -10.154517  1.19542115  8.111334 100.84252
-```
-
-```r
-# Think about the output, sequence, and body before you start writing the loop.
-
-#2. Eliminate the for loop in each of the following examples by taking advantage of an existing function that works with vectors
-## problem 1
-out <- ""
-for (x in letters) {
-  out <- stringr::str_c(out, x)
-}
-## my answer
-stringr::str_c(letters,collapse = "")
-```
-
-```
-## [1] "abcdefghijklmnopqrstuvwxyz"
-```
-
-```r
-## problem2
-x <- sample(100)
-sd <- 0
-for (i in seq_along(x)) {
-  sd <- sd + (x[i] - mean(x)) ^ 2
-}
-sd <- sqrt(sd / (length(x) - 1))
-sd
-```
-
-```
-## [1] 29.01149
-```
-
-```r
-## my answer
-x
-```
-
-```
-##   [1]  39  43  30   2  91  97  74  53  16  44  60  70  12  52  27  38  93
-##  [18]  83  92  41  80  72  77  19   7  10  87  31  63  86  26  62   1  35
-##  [35]  17  82  20  81  45  79  65  59  61  58  36  42  89  24   6  47  18
-##  [52]  90  11  64  51  66  37  94  99  67  33  15   4  50  40  21  75  48
-##  [69]  95  13  55  29   9   3  76  88  96  34  32   8  25  98  57  56  69
-##  [86]   5  54  68  85  23 100  28  84  71  73  49  22  14  78  46
-```
-
-```r
-sqrt(sum((x - mean(x))^2)/(length(x) -1)) # same as sd
-```
-
-```
-## [1] 29.01149
-```
-
-```r
-## problem 3
-x <- runif(100)
-out <- vector("numeric", length(x))
-out[1] <- x[1]
-for (i in 2:length(x)) {
-  out[i] <- out[i - 1] + x[i]
-}
-out
-```
-
-```
-##   [1]  0.04677231  0.85130666  0.92826815  1.72106558  2.71508585
-##   [6]  3.34534344  3.55391655  4.47606085  4.76984241  4.85189653
-##  [11]  4.99206766  5.33305075  5.97416330  6.55909012  7.55660060
-##  [16]  7.83453886  8.60148027  8.90631128  9.27617038 10.19827445
-##  [21] 10.66265256 11.16888131 11.43558434 11.87141437 12.76032927
-##  [26] 13.08672305 13.59619714 13.61797830 14.52885726 15.25252605
-##  [31] 15.43770619 15.60126778 16.14062620 16.88469460 17.63424621
-##  [36] 18.61660471 19.56080219 20.31441352 20.85894971 21.82197024
-##  [41] 22.68854350 22.87979319 23.59183250 24.47695079 25.15130319
-##  [46] 25.80414732 26.14127962 26.64981930 27.37413154 28.21460692
-##  [51] 29.01355316 29.62959129 29.93507742 30.77335360 31.67317441
-##  [56] 32.07674134 32.43595820 32.86623681 33.14541448 33.19604998
-##  [61] 33.44103087 34.18536805 34.54723452 35.29824800 35.63501868
-##  [66] 36.57561053 36.93023962 37.78252673 38.27234806 39.09628106
-##  [71] 39.90409097 40.67717451 40.78562592 41.23962312 42.12645856
-##  [76] 42.90387507 43.71222822 44.08025603 44.40551492 44.79597838
-##  [81] 44.92710440 45.27706625 45.33393832 45.54326752 46.06477730
-##  [86] 46.71278939 47.50954488 48.29791035 49.23116948 49.62771199
-##  [91] 50.37283197 50.92339746 51.30101677 51.39353796 52.15866527
-##  [96] 52.75982662 53.40295853 54.25736983 55.09405055 55.54639551
-```
-
-```r
-## my answer
-identical(cumsum(x) ,out)
-```
-
-```
-## [1] TRUE
-```
-
-```r
-#3. Combine your function writing and for loop skills:
-##1. Write a for loop that prints() the lyrics to the children’s song “Alice the camel”.
-##2. Convert the nursery rhyme “ten in the bed” to a function. Generalise it to any number of people in any sleeping structure.
-##3. Convert the nursery rhyme “ten in the bed” to a function. Generalise it to any number of people in any sleeping structure.
-
-#4. It’s common to see for loops that don’t preallocate the output and instead increase the length of a vector at each step:
-output <- vector("integer", 0)
-for (i in seq_along(x)) {
-  output <- c(output, lengths(x[[i]]))
-}
-output
-```
-
-```
-##   [1] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-##  [36] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-##  [71] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-```
-
-```r
-## How does this affect performance? Design and execute an experiment.
-# I skipped. See Julin or Stacey's answers
-```
-# 21.3 For loop variations
-
-# 21.3.5 Exercises
-
-```r
-#1. Imagine you have a directory full of CSV files that you want to read in. You have their paths in a vector, files <- dir("data/", pattern = "\\.csv$", full.names = TRUE), and now want to read each one with read_csv(). Write the for loop that will load them into a single data frame.
-files <- dir("data/", pattern = "\\.csv$", full.names = TRUE)
-# if all sheets have the same column numbers
-temp<-read_csv(files[1])
-```
-
-```
-## Error: 'NA' does not exist in current working directory ('/Volumes/data_work/Data6/bioconductor_R/Rclub2017_spring/Rclub-r4ds_Kazu.Nozue/R-club_Sep13').
-```
-
-```r
-for(x in files[-1]) {
-  temp2<-read_csv(x)
-  temp<-rbind(temp,temp2)
-}
-temp
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'temp' not found
-```
-
-```r
-# if not. store all in list and unlist them?
-merged.data<-list()
-for(x in files) {
-  merged.data[[x]]<-read_csv(x)
-}
-## convert list into data.frame
-df <- enframe(merged.data) # tibble
-
-#2. What happens if you use for (nm in names(x)) and x has no names? What if only some of the elements are named? What if the names are not unique?
-# x <- runif(100)
-# names(x)
-# out <- vector("numeric", length(x))
-# out[1] <- x[1]
-# for (nm in names(x)[-1]) {
-#   out[nm] <- out[nm - 1] + x[i]
-# }
-# out
-
-
-#3. Write a function that prints the mean of each numeric column in a data frame, along with its name. For example, show_mean(iris) would print:
-show_mean(iris)
-```
-
-```
-## Error in eval(expr, envir, enclos): could not find function "show_mean"
-```
-
-```r
-#> Sepal.Length: 5.84
-#> Sepal.Width:  3.06
-#> Petal.Length: 3.76
-#> Petal.Width:  1.20
-
-show_mean<-function(df) {
-  for(x in colnames(df)) {
-    if(is.numeric(df[[x]])==TRUE) { # only numeric column
-      temp<-round(mean(df[[x]]),2)
-      cat(paste(x,": ",sep=""))
-      cat(temp)
-      cat("\n")
-  } else {next}
-  }
-}
-show_mean(iris)
-```
-
-```
-## Sepal.Length: 5.84
-## Sepal.Width: 3.06
-## Petal.Length: 3.76
-## Petal.Width: 1.2
-```
-
-```r
-# (Extra challenge: what function did I use to make sure that the numbers lined up nicely, even though the variable names had different lengths?)
-
-#4. What does this code do? How does it work?
-mtcars.original<-mtcars
-trans <- list( 
-  disp = function(x) x * 0.0163871,
-  am = function(x) {
-    factor(x, labels = c("auto", "manual"))
-  }
-)
-for (var in names(trans)) {
-  mtcars[[var]] <- trans[[var]](mtcars[[var]])
-}
-
-# answer
-#diff(mtcars.original,mtcars)
-mtcars.original
-```
-
-```
-##                      mpg cyl  disp  hp drat    wt  qsec vs am gear carb
-## Mazda RX4           21.0   6 160.0 110 3.90 2.620 16.46  0  1    4    4
-## Mazda RX4 Wag       21.0   6 160.0 110 3.90 2.875 17.02  0  1    4    4
-## Datsun 710          22.8   4 108.0  93 3.85 2.320 18.61  1  1    4    1
-## Hornet 4 Drive      21.4   6 258.0 110 3.08 3.215 19.44  1  0    3    1
-## Hornet Sportabout   18.7   8 360.0 175 3.15 3.440 17.02  0  0    3    2
-## Valiant             18.1   6 225.0 105 2.76 3.460 20.22  1  0    3    1
-## Duster 360          14.3   8 360.0 245 3.21 3.570 15.84  0  0    3    4
-## Merc 240D           24.4   4 146.7  62 3.69 3.190 20.00  1  0    4    2
-## Merc 230            22.8   4 140.8  95 3.92 3.150 22.90  1  0    4    2
-## Merc 280            19.2   6 167.6 123 3.92 3.440 18.30  1  0    4    4
-## Merc 280C           17.8   6 167.6 123 3.92 3.440 18.90  1  0    4    4
-## Merc 450SE          16.4   8 275.8 180 3.07 4.070 17.40  0  0    3    3
-## Merc 450SL          17.3   8 275.8 180 3.07 3.730 17.60  0  0    3    3
-## Merc 450SLC         15.2   8 275.8 180 3.07 3.780 18.00  0  0    3    3
-## Cadillac Fleetwood  10.4   8 472.0 205 2.93 5.250 17.98  0  0    3    4
-## Lincoln Continental 10.4   8 460.0 215 3.00 5.424 17.82  0  0    3    4
-## Chrysler Imperial   14.7   8 440.0 230 3.23 5.345 17.42  0  0    3    4
-## Fiat 128            32.4   4  78.7  66 4.08 2.200 19.47  1  1    4    1
-## Honda Civic         30.4   4  75.7  52 4.93 1.615 18.52  1  1    4    2
-## Toyota Corolla      33.9   4  71.1  65 4.22 1.835 19.90  1  1    4    1
-## Toyota Corona       21.5   4 120.1  97 3.70 2.465 20.01  1  0    3    1
-## Dodge Challenger    15.5   8 318.0 150 2.76 3.520 16.87  0  0    3    2
-## AMC Javelin         15.2   8 304.0 150 3.15 3.435 17.30  0  0    3    2
-## Camaro Z28          13.3   8 350.0 245 3.73 3.840 15.41  0  0    3    4
-## Pontiac Firebird    19.2   8 400.0 175 3.08 3.845 17.05  0  0    3    2
-## Fiat X1-9           27.3   4  79.0  66 4.08 1.935 18.90  1  1    4    1
-## Porsche 914-2       26.0   4 120.3  91 4.43 2.140 16.70  0  1    5    2
-## Lotus Europa        30.4   4  95.1 113 3.77 1.513 16.90  1  1    5    2
-## Ford Pantera L      15.8   8 351.0 264 4.22 3.170 14.50  0  1    5    4
-## Ferrari Dino        19.7   6 145.0 175 3.62 2.770 15.50  0  1    5    6
-## Maserati Bora       15.0   8 301.0 335 3.54 3.570 14.60  0  1    5    8
-## Volvo 142E          21.4   4 121.0 109 4.11 2.780 18.60  1  1    4    2
-```
-
-```r
-mtcars
-```
-
-```
-##                      mpg cyl     disp  hp drat    wt  qsec vs     am gear
-## Mazda RX4           21.0   6 2.621936 110 3.90 2.620 16.46  0 manual    4
-## Mazda RX4 Wag       21.0   6 2.621936 110 3.90 2.875 17.02  0 manual    4
-## Datsun 710          22.8   4 1.769807  93 3.85 2.320 18.61  1 manual    4
-## Hornet 4 Drive      21.4   6 4.227872 110 3.08 3.215 19.44  1   auto    3
-## Hornet Sportabout   18.7   8 5.899356 175 3.15 3.440 17.02  0   auto    3
-## Valiant             18.1   6 3.687098 105 2.76 3.460 20.22  1   auto    3
-## Duster 360          14.3   8 5.899356 245 3.21 3.570 15.84  0   auto    3
-## Merc 240D           24.4   4 2.403988  62 3.69 3.190 20.00  1   auto    4
-## Merc 230            22.8   4 2.307304  95 3.92 3.150 22.90  1   auto    4
-## Merc 280            19.2   6 2.746478 123 3.92 3.440 18.30  1   auto    4
-## Merc 280C           17.8   6 2.746478 123 3.92 3.440 18.90  1   auto    4
-## Merc 450SE          16.4   8 4.519562 180 3.07 4.070 17.40  0   auto    3
-## Merc 450SL          17.3   8 4.519562 180 3.07 3.730 17.60  0   auto    3
-## Merc 450SLC         15.2   8 4.519562 180 3.07 3.780 18.00  0   auto    3
-## Cadillac Fleetwood  10.4   8 7.734711 205 2.93 5.250 17.98  0   auto    3
-## Lincoln Continental 10.4   8 7.538066 215 3.00 5.424 17.82  0   auto    3
-## Chrysler Imperial   14.7   8 7.210324 230 3.23 5.345 17.42  0   auto    3
-## Fiat 128            32.4   4 1.289665  66 4.08 2.200 19.47  1 manual    4
-## Honda Civic         30.4   4 1.240503  52 4.93 1.615 18.52  1 manual    4
-## Toyota Corolla      33.9   4 1.165123  65 4.22 1.835 19.90  1 manual    4
-## Toyota Corona       21.5   4 1.968091  97 3.70 2.465 20.01  1   auto    3
-## Dodge Challenger    15.5   8 5.211098 150 2.76 3.520 16.87  0   auto    3
-## AMC Javelin         15.2   8 4.981678 150 3.15 3.435 17.30  0   auto    3
-## Camaro Z28          13.3   8 5.735485 245 3.73 3.840 15.41  0   auto    3
-## Pontiac Firebird    19.2   8 6.554840 175 3.08 3.845 17.05  0   auto    3
-## Fiat X1-9           27.3   4 1.294581  66 4.08 1.935 18.90  1 manual    4
-## Porsche 914-2       26.0   4 1.971368  91 4.43 2.140 16.70  0 manual    5
-## Lotus Europa        30.4   4 1.558413 113 3.77 1.513 16.90  1 manual    5
-## Ford Pantera L      15.8   8 5.751872 264 4.22 3.170 14.50  0 manual    5
-## Ferrari Dino        19.7   6 2.376130 175 3.62 2.770 15.50  0 manual    5
-## Maserati Bora       15.0   8 4.932517 335 3.54 3.570 14.60  0 manual    5
-## Volvo 142E          21.4   4 1.982839 109 4.11 2.780 18.60  1 manual    4
-##                     carb
-## Mazda RX4              4
-## Mazda RX4 Wag          4
-## Datsun 710             1
-## Hornet 4 Drive         1
-## Hornet Sportabout      2
-## Valiant                1
-## Duster 360             4
-## Merc 240D              2
-## Merc 230               2
-## Merc 280               4
-## Merc 280C              4
-## Merc 450SE             3
-## Merc 450SL             3
-## Merc 450SLC            3
-## Cadillac Fleetwood     4
-## Lincoln Continental    4
-## Chrysler Imperial      4
-## Fiat 128               1
-## Honda Civic            2
-## Toyota Corolla         1
-## Toyota Corona          1
-## Dodge Challenger       2
-## AMC Javelin            2
-## Camaro Z28             4
-## Pontiac Firebird       2
-## Fiat X1-9              1
-## Porsche 914-2          2
-## Lotus Europa           2
-## Ford Pantera L         4
-## Ferrari Dino           6
-## Maserati Bora          8
-## Volvo 142E             2
-```
-
-```r
-# transform "disp" column nad "am" column
-# two separate functions are used according to two different objects ("disp" or "am"). Input "x" is difined within parenthesis.
-```
-# 21.4 For loops vs. functionals
-
-```r
-df <- tibble(
-  a = rnorm(10),
-  b = rnorm(10),
-  c = rnorm(10),
-  d = rnorm(10)
-)
-```
-
-# 21.4.1 Exercises
-
-```r
-#1. Read the documentation for apply(). In the 2d case, what two for loops does it generalise?
-?apply
-
-#2. Adapt col_summary() so that it only applies to numeric columns You might want to start with an is_numeric() function that returns a logical vector that has a TRUE corresponding to each numeric column.
-col_summary <- function(df, fun) {
-  out <- vector("double", length(df))
-  for (i in seq_along(df)) {
-    out[i] <- fun(df[[i]])
-  }
-  out
-}
-col_summary(df, median) # original
-```
-
-```
-## [1]  0.29469587 -0.30515987 -0.09446403 -0.19680245
-```
-
-```r
-# answer
-df2 <- tibble(
-  a = rnorm(10),
-  x = letters[1:10],
-  b = rnorm(10),
-  c = rnorm(10),
-  d = rnorm(10)
-)
-# 
-col_summary2 <- function(y, fun) {
-  out <- vector()
-    for (i in seq_along(y)) {
-      if(is_numeric(y[[i]])==TRUE) {
-      out[[i]] <- fun(y[[i]])
-      names(out[i]) <- colnames(y)[i] # does not work
-      } # else {next}
-    }
-  out
-}
-col_summary2(df2,median) # incomplete
-```
-
-```
-## [1] -1.21862832          NA -0.30132813 -0.20143108 -0.08818903
-```
-
-```r
-# 
-```
 
 # 21.5 The map functions
 
@@ -910,8 +12,7 @@ map_dbl(df, mean)
 ```
 
 ```
-##          a          b          c          d 
-##  0.2330449 -0.2584854 -0.3265362 -0.2527256
+## Error: `.x` is not a vector (closure)
 ```
 
 ```r
@@ -919,8 +20,7 @@ map_dbl(df, median)
 ```
 
 ```
-##           a           b           c           d 
-##  0.29469587 -0.30515987 -0.09446403 -0.19680245
+## Error: `.x` is not a vector (closure)
 ```
 
 ```r
@@ -928,7 +28,7 @@ map_dbl(df, sd)
 ```
 
 ```
-## Error: Result 1 is not a length 1 atomic vector
+## Error: `.x` is not a vector (closure)
 ```
 
 ```r
@@ -936,8 +36,7 @@ df %>% map_dbl(mean)
 ```
 
 ```
-##          a          b          c          d 
-##  0.2330449 -0.2584854 -0.3265362 -0.2527256
+## Error: `.x` is not a vector (closure)
 ```
 # 21.5.1 Shortcuts
 
@@ -1103,6 +202,17 @@ x2 %>% sapply(threshold) %>% str()
 ```r
 #>  num [1:3] 0.99 0.93 0.87
 
+map(x2, threshold) %>% str()
+```
+
+```
+## List of 3
+##  $ : num 0.99
+##  $ : num 0.93
+##  $ : num 0.87
+```
+
+```r
 # vapply() is a safe alternative to sapply() because you supply an additional argument that defines the type. The only problem with vapply() is that it’s a lot of typing: vapply(df, is.numeric, logical(1)) is equivalent to map_lgl(df, is.numeric). One advantage of vapply() over purrr’s map functions is that it can also produce matrices — the map functions only ever produce vectors.
 
 # I focus on purrr functions here because they have more consistent names and arguments, helpful shortcuts, and in the future will provide easy parallelism and progress bars.
@@ -1116,15 +226,10 @@ mtcars %>% map_dbl(mean)
 ```
 
 ```
-## Warning in mean.default(.x[[i]], ...): argument is not numeric or logical:
-## returning NA
-```
-
-```
 ##        mpg        cyl       disp         hp       drat         wt 
-##  20.090625   6.187500   3.780862 146.687500   3.596563   3.217250 
+##  20.090625   6.187500 230.721875 146.687500   3.596563   3.217250 
 ##       qsec         vs         am       gear       carb 
-##  17.848750   0.437500         NA   3.687500   2.812500
+##  17.848750   0.437500   0.406250   3.687500   2.812500
 ```
 
 ```r
@@ -1232,20 +337,20 @@ mu %>% map(function(x) rnorm(10,x)) # or
 
 ```
 ## [[1]]
-##  [1]  -9.173699  -9.245598 -11.759037 -11.168114  -9.563800  -9.585204
-##  [7] -11.762264 -11.289536  -9.680638  -8.361946
+##  [1] -10.829004 -10.228845 -10.451062 -10.029060  -9.443216 -12.041044
+##  [7]  -9.598622  -9.475527  -8.638227  -9.772169
 ## 
 ## [[2]]
-##  [1] -0.74017463 -1.00270676 -2.10793398  0.02839868 -0.65739727
-##  [6] -0.34633866  1.74812986  0.20602065  0.46639840  0.18369170
+##  [1]  0.2822984  1.2379165 -2.2176128  0.1744977 -0.3121596 -0.5530128
+##  [7] -0.7908559 -1.8671170  1.7148667 -0.4027246
 ## 
 ## [[3]]
-##  [1] 10.736206  8.655485  9.901215 10.626508  9.354677 11.123646  9.521537
-##  [8]  9.789973  9.673017  9.374131
+##  [1]  8.837979 10.539045  9.695274 10.058225 10.919844 10.308559  9.814492
+##  [8]  8.746774  9.856136  8.612763
 ## 
 ## [[4]]
-##  [1] 100.01767  99.51263 101.59060  99.77219  99.29118 100.39991  99.79205
-##  [8]  99.20697 100.81831 100.38324
+##  [1]  97.72144 100.82774 100.22176 100.32211  97.62185 100.62234 100.50917
+##  [8]  99.14197 100.71627  99.76875
 ```
 
 ```r
@@ -1254,20 +359,43 @@ mu %>% map(function(x) rnorm(10,mean=x))
 
 ```
 ## [[1]]
-##  [1]  -8.962919  -9.912537  -9.327342  -9.266466 -10.996637  -9.918477
-##  [7]  -9.312038  -9.904522  -8.739972  -8.644404
+##  [1] -10.240884  -8.589311 -11.894273  -9.219635 -10.972832 -10.853162
+##  [7] -12.663734  -9.147352  -9.644172 -10.553771
 ## 
 ## [[2]]
-##  [1]  0.36038853 -0.74672377 -0.31204561  0.42011754 -0.77720438
-##  [6] -0.08335023  1.63401075  0.96179579 -0.48684595 -2.56871269
+##  [1]  1.77702910 -0.39605833 -0.91148568  0.72257830  0.42045650
+##  [6] -0.75571006  0.76285580 -0.96475167  1.46125200  0.06286068
 ## 
 ## [[3]]
-##  [1] 11.131665  8.872097  9.765596 10.604743  8.243408 10.430302  9.377313
-##  [8]  9.742727  9.826660 11.044122
+##  [1] 10.156183 11.601387 10.214310 10.254721 10.893302  9.923814  9.130114
+##  [8] 11.616764  8.605318  9.283982
 ## 
 ## [[4]]
-##  [1] 100.36871  98.56949  99.15670 100.49726  99.52741 100.65569  99.26634
-##  [8]  98.82872  99.76907 101.17410
+##  [1]  98.38729  99.40568  99.90651  99.49349  99.28309  99.04733  99.80303
+##  [8] 100.14934 100.98171  99.81290
+```
+
+```r
+# 
+map(mu, rnorm,n=10) # simplified one
+```
+
+```
+## [[1]]
+##  [1] -11.450235 -10.121640  -9.855711 -11.518453 -10.558657 -10.032961
+##  [7]  -9.469364 -10.440958 -10.764400  -8.516622
+## 
+## [[2]]
+##  [1] -0.8420776  0.2893592 -1.1589854 -0.2920552 -0.6038707  1.5974327
+##  [7]  1.0139565  1.0763644 -0.9086289 -1.3502318
+## 
+## [[3]]
+##  [1] 11.156197 10.655950  8.540614 10.574753 10.639359  8.692083  8.215173
+##  [8] 10.812185  9.618877  9.335260
+## 
+## [[4]]
+##  [1] 100.49586  99.74686 100.60229  98.53270  99.06653 100.66663 100.17678
+##  [8] 101.21328  99.52776  99.09070
 ```
 
 ```r
@@ -1284,11 +412,11 @@ str(df2)
 
 ```
 ## Classes 'tbl_df', 'tbl' and 'data.frame':	10 obs. of  5 variables:
-##  $ a: num  0.941 -0.152 -1.282 1.113 0.687 ...
+##  $ a: num  -1.607 -2.009 0.509 0.659 0.526 ...
 ##  $ x: chr  "a" "b" "c" "d" ...
-##  $ b: num  -0.395 -0.756 -0.76 0.535 -0.582 ...
-##  $ c: num  1.631 0.492 0.381 1.203 0.775 ...
-##  $ d: num  -1.106 -1.901 -1.131 0.673 0.748 ...
+##  $ b: num  -0.2503 -0.7366 2.0212 0.8594 0.0855 ...
+##  $ c: num  -0.121 0.372 -0.6 0.548 0.682 ...
+##  $ d: num  1.577 -0.979 -0.42 -0.305 0.713 ...
 ```
 
 ```r
@@ -1299,11 +427,11 @@ attributes(str(df3))
 
 ```
 ## Classes 'tbl_df', 'tbl' and 'data.frame':	10 obs. of  5 variables:
-##  $ a: num  0.941 -0.152 -1.282 1.113 0.687 ...
+##  $ a: num  -1.607 -2.009 0.509 0.659 0.526 ...
 ##  $ x: Factor w/ 10 levels "a","b","c","d",..: 1 2 3 4 5 6 7 8 9 10
-##  $ b: num  -0.395 -0.756 -0.76 0.535 -0.582 ...
-##  $ c: num  1.631 0.492 0.381 1.203 0.775 ...
-##  $ d: num  -1.106 -1.901 -1.131 0.673 0.748 ...
+##  $ b: num  -0.2503 -0.7366 2.0212 0.8594 0.0855 ...
+##  $ c: num  -0.121 0.372 -0.6 0.548 0.682 ...
+##  $ d: num  1.577 -0.979 -0.42 -0.305 0.713 ...
 ```
 
 ```
@@ -1339,19 +467,19 @@ map(1:5, runif) # with different numbe of observation
 
 ```
 ## [[1]]
-## [1] 0.0523393
+## [1] 0.5556003
 ## 
 ## [[2]]
-## [1] 0.6807549 0.8905001
+## [1] 0.6252319 0.8087144
 ## 
 ## [[3]]
-## [1] 0.09812893 0.59356093 0.28201578
+## [1] 0.4114969 0.4416450 0.4571188
 ## 
 ## [[4]]
-## [1] 0.4836408 0.1568726 0.2658584 0.8377906
+## [1] 0.6149921 0.3333936 0.6191582 0.1496587
 ## 
 ## [[5]]
-## [1] 0.9342574 0.8417619 0.8124335 0.8649559 0.6100002
+## [1] 0.4850547 0.7794324 0.9682839 0.3738480 0.5106641
 ```
 
 ```r
@@ -1360,7 +488,7 @@ map(1, runif)
 
 ```
 ## [[1]]
-## [1] 0.005154351
+## [1] 0.7753717
 ```
 
 ```r
@@ -1369,7 +497,7 @@ map(2, runif)
 
 ```
 ## [[1]]
-## [1] 0.6311396 0.1837135
+## [1] 0.2694203 0.1039447
 ```
 
 ```r
@@ -1378,7 +506,7 @@ map(5, runif)
 
 ```
 ## [[1]]
-## [1] 0.4345283 0.8079047 0.7219501 0.9140047 0.4534498
+## [1] 0.6982492 0.0228982 0.5119759 0.6933652 0.1825926
 ```
 
 ```r
@@ -1388,19 +516,19 @@ map(-2:2, rnorm, n = 5) # mean is now variable. n is fixed to "5"
 
 ```
 ## [[1]]
-## [1] -2.818321 -1.217676 -1.282322 -2.536644 -2.769359
+## [1] -1.406187 -2.760559 -2.192003 -1.933289 -2.210673
 ## 
 ## [[2]]
-## [1] -1.4462360 -0.1136957 -2.6357911 -0.4935999 -1.5849765
+## [1] -1.72982167  0.30138407 -0.06455585  0.13566677  0.84466956
 ## 
 ## [[3]]
-## [1]  0.4156517 -1.6665530 -0.5334248 -1.0945712  1.0959866
+## [1] -1.7084510 -1.4975180 -0.6874186 -0.2721006  1.5081102
 ## 
 ## [[4]]
-## [1]  1.1216777 -0.2905201 -0.1556159  0.2459891 -0.1674828
+## [1] 0.50761089 0.01288115 2.68012074 0.50327103 2.69089783
 ## 
 ## [[5]]
-## [1] -0.1892445  3.6599044  1.2902384  2.6929492  2.8078720
+## [1] 2.645033 2.602410 1.445456 2.583816 1.182431
 ```
 
 ```r
@@ -1413,6 +541,7 @@ mtcars %>% map(function(df) lm(mpg ~ wt, data = df)) # original, Why this does n
 ```
 
 ```r
+# what is anonymous function? see text
 mtcars %>% map(function(df) lm(mpg ~ wt, data = df)) # original
 ```
 
@@ -1430,8 +559,7 @@ mtcars %>% map(~lm(mpg ~ wt, data =.)) # does not work
 
 ```r
 mtcars %>% 
-  split(.$cyl) %>% 
-  map(~lm(mpg ~ wt, data = .)) # works..
+  split(.$cyl) %>%   map(~lm(mpg ~ wt, data = .)) # works.. becasue split(,.$cyl) gave list object (map() needs list)
 ```
 
 ```
@@ -1463,6 +591,46 @@ mtcars %>%
 ## Coefficients:
 ## (Intercept)           wt  
 ##      23.868       -2.192
+```
+
+```r
+#
+mtcars %>% map(~lm(mpg ~ wt, data = .)) # does not work.. becasue split(,.$cyl) gave list object (map() needs 
+```
+
+```
+## Error in eval(predvars, data, env): numeric 'envir' arg not of length one
+```
+
+```r
+list(mtcars) %>% map(~lm(mpg ~ wt, data = .)) # does  work.. becasue split(,.$cyl) gave list object (map() needs 
+```
+
+```
+## [[1]]
+## 
+## Call:
+## lm(formula = mpg ~ wt, data = .)
+## 
+## Coefficients:
+## (Intercept)           wt  
+##      37.285       -5.344
+```
+
+```r
+mtcars %>% map(~lm(mpg ~ wt, data = .)) # does not work.. becasue split(,.$cyl) gave list object (map() needs list)
+```
+
+```
+## Error in eval(predvars, data, env): numeric 'envir' arg not of length one
+```
+
+```r
+map(~lm(mpg ~ wt, data = .)) # works..
+```
+
+```
+## Error in as_function(.f, ...): argument ".f" is missing, with no default
 ```
 # 21.6 Dealing with failure
 
@@ -1547,7 +715,7 @@ x[!is_ok]
 
 ```r
 #
-y$result[is_ok] %>% flatten_dbl()
+y$result[is_ok] %>% flatten_dbl() # unlist can not control output form vs flatten does
 ```
 
 ```
@@ -1594,9 +762,9 @@ mu %>%
 
 ```
 ## List of 3
-##  $ : num [1:5] 4.88 5.36 5.69 4.96 6.05
-##  $ : num [1:5] 9.43 9.16 10.62 9.4 8.9
-##  $ : num [1:5] -4.23 -2.66 -2.36 -1.14 -1.63
+##  $ : num [1:5] 6.02 4.53 5.45 5.7 3.63
+##  $ : num [1:5] 9.46 11.05 10.09 10.77 10.11
+##  $ : num [1:5] -3.92 -3.48 -2.98 -3.57 -2.4
 ```
 
 ```r
@@ -1609,9 +777,9 @@ seq_along(mu) %>%
 
 ```
 ## List of 3
-##  $ : num [1:5] 3.83 3.84 3.78 4.1 4.88
-##  $ : num [1:5] 9.21 3.09 2.52 -5.72 12.32
-##  $ : num [1:5] -1.06 -5.17 -12.32 13.93 -21.3
+##  $ : num [1:5] 4.78 4.67 5.27 3.88 3.91
+##  $ : num [1:5] 2.56 14.43 17.15 7.45 3.15
+##  $ : num [1:5] -6.15 -4.48 -1.58 -27.41 -15.9
 ```
 
 ```r
@@ -1621,9 +789,9 @@ map2(mu, sigma, rnorm, n = 5) %>% str()
 
 ```
 ## List of 3
-##  $ : num [1:5] 5.17 5.11 5.47 5.77 5.64
-##  $ : num [1:5] 2.43 17.94 13.92 6.35 11.33
-##  $ : num [1:5] -6.2 -15.22 -13.89 7.57 7.7
+##  $ : num [1:5] 4.45 4.62 3.82 3.89 4.36
+##  $ : num [1:5] 14.92 4.17 15.75 -4.91 13.97
+##  $ : num [1:5] -5.29 10.67 -8.18 -8.03 -30.89
 ```
 
 ```r
@@ -1635,7 +803,7 @@ map2 <- function(x, y, f, ...) {
   }
   out
 }
-#
+# usage of pmap() 
 n <- list(1, 3, 5)
 args1 <- list(n, mu, sigma)
 args1 %>%
@@ -1645,13 +813,13 @@ args1 %>%
 
 ```
 ## List of 3
-##  $ : num 5.18
-##  $ : num [1:3] 1.94 7.29 7.33
-##  $ : num [1:5] 10.61 4.08 8.5 -12.23 3.12
+##  $ : num 5.44
+##  $ : num [1:3] 25.11 16.01 3.85
+##  $ : num [1:5] 1.3 -5.97 -20.83 10.95 -34.08
 ```
 
 ```r
-#
+# you can name args2
 args2 <- list(mean = mu, sd = sigma, n = n)
 args2 %>% 
   pmap(rnorm) %>% 
@@ -1660,9 +828,9 @@ args2 %>%
 
 ```
 ## List of 3
-##  $ : num 4.65
-##  $ : num [1:3] 9.93 15.03 13.03
-##  $ : num [1:5] 7.98 -9.85 -18.48 5.11 1.1
+##  $ : num 4.83
+##  $ : num [1:3] 10.6 13.9 12.5
+##  $ : num [1:5] 5.87 -13 -10.05 5.91 6.49
 ```
 
 ```r
@@ -1679,13 +847,13 @@ params %>%
 
 ```
 ## [[1]]
-## [1] 3.787039
+## [1] 4.821788
 ## 
 ## [[2]]
-## [1] 11.096439  4.713716 17.800128
+## [1] 13.51328 18.55762 14.95441
 ## 
 ## [[3]]
-## [1]  -8.377811  -4.211184  17.318502 -15.319075  -5.261924
+## [1]  -6.345541  -5.672127 -10.097694   8.025715   6.945374
 ```
 # 21.7.1 Invoking different functions
 
@@ -1696,4 +864,51 @@ param <- list(
   list(sd = 5), 
   list(lambda = 10)
 )
+#
+invoke_map(f, param, n = 5) %>% str()
+```
+
+```
+## List of 3
+##  $ : num [1:5] 0.4963 0.6492 -0.6461 -0.7236 0.0774
+##  $ : num [1:5] 2.62 12.4 -0.28 -4.88 -3.88
+##  $ : int [1:5] 9 10 7 7 17
+```
+
+```r
+#
+sim <- tribble(
+  ~f,      ~params,
+  "runif", list(min = -1, max = 1),
+  "rnorm", list(sd = 5),
+  "rpois", list(lambda = 10)
+)
+sim %>% 
+  mutate(sim = invoke_map(f, params, n = 10))
+```
+
+```
+## # A tibble: 3 × 3
+##       f     params        sim
+##   <chr>     <list>     <list>
+## 1 runif <list [2]> <dbl [10]>
+## 2 rnorm <list [1]> <dbl [10]>
+## 3 rpois <list [1]> <int [10]>
+```
+
+```r
+#
+```
+# 21.8 Walk
+
+```r
+x <- list(1, "a", 3)
+
+x %>%   walk(print)
+```
+
+```
+## [1] 1
+## [1] "a"
+## [1] 3
 ```
