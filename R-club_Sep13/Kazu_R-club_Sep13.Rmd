@@ -123,6 +123,7 @@ map(-2:2, rnorm, n = 5) # mean is now variable. n is fixed to "5"
 
 #5. Rewrite map(x, function(df) lm(mpg ~ wt, data = df)) to eliminate the anonymous function.
 mtcars %>% map(function(df) lm(mpg ~ wt, data = df)) # original, Why this does not work?
+# what is anonymous function? see text
 mtcars %>% map(function(df) lm(mpg ~ wt, data = df)) # original
 
 mtcars %>% map(~lm(mpg ~ wt, data =.)) # does not work
@@ -151,7 +152,7 @@ str(y)
 is_ok <- y$error %>% map_lgl(is_null)
 x[!is_ok]
 #
-y$result[is_ok] %>% flatten_dbl()
+y$result[is_ok] %>% flatten_dbl() # unlist can not control output form vs flatten does
 
 #
 x <- list(1, 10, "a")
@@ -183,13 +184,13 @@ map2 <- function(x, y, f, ...) {
   }
   out
 }
-#
+# usage of pmap() 
 n <- list(1, 3, 5)
 args1 <- list(n, mu, sigma)
 args1 %>%
   pmap(rnorm) %>% 
   str()
-#
+# you can name args2
 args2 <- list(mean = mu, sd = sigma, n = n)
 args2 %>% 
   pmap(rnorm) %>% 
@@ -206,7 +207,7 @@ params %>%
 
 ```
 # 21.7.1 Invoking different functions
-```{r}
+```{r, error=TRUE}
 f <- c("runif", "rnorm", "rpois")
 param <- list(
   list(min = -1, max = 1), 
@@ -228,13 +229,83 @@ sim %>%
 
 ```
 # 21.8 Walk
+```{r, error=TRUE}
+x <- list(1, "a", 3)
+x %>%   walk(print)
+
+#
+library(ggplot2)
+plots <- mtcars %>% 
+  split(.$cyl) %>% 
+  map(~ggplot(., aes(mpg, wt)) + geom_point())
+paths <- stringr::str_c(names(plots), ".pdf")
+pwalk(list(paths, plots), ggsave, path = tempdir())
+```
+# 21.9 Other patterns of for loops
+## 21.9.1 Predicate functions
 ```{r}
 
-x <- list(1, "a", 3)
+```
+## 21.9.2 Reduce and accumulate
+```{r}
+dfs <- list(
+  age = tibble(name = "John", age = 30),
+  sex = tibble(name = c("John", "Mary"), sex = c("M", "F")),
+  trt = tibble(name = "Mary", treatment = "A")
+)
 
-x %>% 
-  walk(print)
-=======
->>>>>>> 04080c36da2bc39b0a082e5c9c17f2fd7591f85a
+dfs %>% reduce(full_join)
+#
+vs <- list(
+  c(1, 3, 5, 6, 10),
+  c(1, 2, 3, 7, 8, 10),
+  c(1, 2, 3, 4, 8, 9, 10)
+)
+
+vs %>% reduce(intersect)
+
+# 
+x <- sample(10)
+x
+#>  [1]  6  9  8  5  2  4  7  1 10  3
+x %>% accumulate(`+`)
 
 ```
+# 21.9.3 Exercises
+```{r}
+#1 Implement your own version of every() using a for loop. Compare it with purrr::every(). What does purrr’s version do that your version doesn’t?
+?every
+#2. Create an enhanced col_sum() that applies a summary function to every numeric column in a data frame.
+
+#3. A possible base R equivalent of col_sum() is:
+
+col_sum3 <- function(df, f) {
+  is_num <- sapply(df, is.numeric)
+  df_num <- df[, is_num]
+
+  sapply(df_num, f)
+}
+#
+df <- tibble(
+  x = 1:3, 
+  y = 3:1,
+  z = c("a", "b", "c")
+)
+# OK
+col_sum3(df, mean)
+# Has problems: don't always return numeric vector
+col_sum3(df[1:2], mean)
+col_sum3(df[1], mean)
+col_sum3(df[0], mean)
+
+# solution
+col_sum4<-function(df,f) {
+  df_num<-keep(df,is.numeric)
+  map_dbl(df_num,f)
+}
+col_sum4(df,mean)
+col_sum4(df[0],mean)
+
+```
+
+
