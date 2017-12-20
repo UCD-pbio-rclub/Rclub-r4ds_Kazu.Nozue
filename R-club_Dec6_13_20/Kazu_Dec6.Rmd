@@ -18,7 +18,7 @@ version
 ```{r error=TRUE}
 # Chapter 3 Lab: Linear Regression
 # Simple Linear Regression
-fix(Boston)
+#fix(Boston)
 names(Boston)
 lm.fit=lm(medv~lstat) # error
 lm.fit=lm(medv~lstat,data=Boston)
@@ -77,7 +77,7 @@ summary(lm.fit5)
 summary(lm(medv~log(rm),data=Boston))
 
 # 3.6.6  Qualitative Predictors
-fix(Carseats)
+#fix(Carseats)
 names(Carseats)
 lm.fit=lm(Sales~.+Income:Advertising+Price:Age,data=Carseats)
 summary(lm.fit)
@@ -116,7 +116,7 @@ LoadLibraries()
 # Problems
 # 3.9, d, e, f
 # This question involves the use of multiple linear regression on the Auto data set.
-```{r}
+```{r error=T}
 head(Auto)
 # (a) Produce a scatterplot matrix which includes all of the variables in the data set.
 pairs(Auto)
@@ -254,7 +254,7 @@ lm.Carseats.e1<-lm(Sales~CompPrice+Income+Advertising+Price+ShelveLoc+Age,data=C
 anova(lm.Carseats.all,lm.Carseats.e1) # not significantly dirrerent
 plot(hatvalues(lm.Carseats.e1))
 n<-length(fitted(lm.Carseats.e1))
-identify(1:n, hatvalues(lm.Carseats.e1), names(hatvalues(lm.Carseats.e1)))
+#identify(1:n, hatvalues(lm.Carseats.e1), names(hatvalues(lm.Carseats.e1)))
 # finding outliners
 library(mvoutlier)
 outliers <- aq.plot(data.frame(x=predict(lm.Carseats.e1),y=Carseats$Sales))
