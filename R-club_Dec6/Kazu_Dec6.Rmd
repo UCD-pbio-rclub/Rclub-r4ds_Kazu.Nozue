@@ -225,6 +225,7 @@ anova(lm.fit3.root1,lm.fit3)
 par(mfrow=c(2,2));plot(lm.fit3.root1)
 par(mfrow=c(2,2));plot(lm.fit3)
 
+<<<<<<< HEAD
 ```
 # 3.10 h
 # Is there evidence of outliers or high leverage observations in the model from (e)?
@@ -269,3 +270,11 @@ plot(lm.Carseats.e1, which=4, cook.levels=cutoff)
 abline(h=cutoff,lty=2,col="red")
 
 ```
+=======
+
+
+
+
+```
+
+>>>>>>> 6db7b8a7a95e4dad0d9f28291761ffd8a529e956
